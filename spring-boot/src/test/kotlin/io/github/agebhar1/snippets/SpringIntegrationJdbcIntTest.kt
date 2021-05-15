@@ -1,0 +1,114 @@
+package io.github.agebhar1.snippets
+
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.integration.channel.DirectChannel
+import org.springframework.integration.config.EnableIntegration
+import org.springframework.integration.core.MessagingTemplate
+import org.springframework.integration.dsl.integrationFlow
+import org.springframework.integration.jdbc.JdbcMessageHandler
+import org.springframework.integration.support.MessageBuilder
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
+import org.springframework.test.context.jdbc.Sql
+import org.springframework.test.jdbc.JdbcTestUtils.countRowsInTableWhere
+import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.utility.DockerImageName
+
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@JdbcTest
+@Testcontainers
+class SpringIntegrationJdbcIntTest {
+
+    @Test
+    @Sql("/sql/spring-integration-jdbc-int-test.sql")
+    fun `message payload should be present in database table`(@Autowired jdbcTemplate: JdbcTemplate, @Autowired messagingTemplate: MessagingTemplate) {
+
+        val message =MessageBuilder
+                .withPayload("hello")
+                .setHeader("externalId", 1)
+                .build()
+
+        messagingTemplate.send(message)
+
+        assertThat(countRowsInTableWhere(jdbcTemplate, "message", "payload = 'hello'")).isEqualTo(1)
+
+    }
+
+    @Test
+    @Sql("/sql/spring-integration-jdbc-int-test.sql")
+    fun `message payload should be updated in database table`(@Autowired jdbcTemplate: JdbcTemplate, @Autowired messagingTemplate: MessagingTemplate) {
+
+        val fstMessage = MessageBuilder
+                .withPayload("hello")
+                .setHeader("externalId", 1)
+                .build()
+
+        messagingTemplate.send(fstMessage)
+
+        val sndMessage = MessageBuilder
+                .withPayload("hello from jdbc")
+                .setHeader("externalId", 1)
+                .build()
+
+        messagingTemplate.send(sndMessage)
+
+        assertThat(countRowsInTableWhere(jdbcTemplate, "message", "payload = 'hello from jdbc'")).isEqualTo(1)
+
+    }
+
+    @EnableIntegration
+    @TestConfiguration
+    class Configuration {
+
+        @Bean
+        fun input() = DirectChannel()
+
+        @Bean
+        fun messagingTemplate() = MessagingTemplate(input())
+
+        @Bean
+        fun flow(jdbcTemplate: JdbcTemplate) = integrationFlow(input()) {
+
+            handle(JdbcMessageHandler(jdbcTemplate,
+                """
+                INSERT INTO message(id, messageId, payload)
+                VALUES (:headers[externalId], :headers[id], :payload)
+                ON CONFLICT (id) 
+                DO UPDATE SET
+                    messageId = EXCLUDED.messageId,
+                    payload = EXCLUDED.payload
+                """
+            )) { id("jdbcHandler") }
+        }
+
+    }
+
+    companion object {
+
+        @Container
+        val container = PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:13.2")).apply {
+            withDatabaseName("postgres")
+            withUsername("postgres")
+            withPassword("postgres")
+        }
+
+        @JvmStatic
+        @DynamicPropertySource
+        fun properties(registry: DynamicPropertyRegistry) {
+            registry.add("spring.datasource.url", container::getJdbcUrl)
+            registry.add("spring.datasource.password", container::getPassword)
+            registry.add("spring.datasource.username", container::getUsername)
+        }
+
+    }
+
+}
