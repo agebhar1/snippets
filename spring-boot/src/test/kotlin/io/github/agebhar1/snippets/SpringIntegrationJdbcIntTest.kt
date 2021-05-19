@@ -14,19 +14,17 @@ import org.springframework.integration.dsl.integrationFlow
 import org.springframework.integration.jdbc.JdbcMessageHandler
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.jdbc.JdbcTestUtils.countRowsInTableWhere
-import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.utility.DockerImageName
 
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @JdbcTest
 @Testcontainers
-class SpringIntegrationJdbcIntTest(@Autowired val jdbcTemplate: JdbcTemplate, @Autowired val messagingTemplate: MessagingTemplate) {
+class SpringIntegrationJdbcIntTest(
+        @Autowired val jdbcTemplate: JdbcTemplate,
+        @Autowired val messagingTemplate: MessagingTemplate
+) : AbstractPostgreSQLContainerIntTest() {
 
     @Test
     @Sql("/sql/spring-integration-jdbc-int-test.sql")
@@ -88,25 +86,6 @@ class SpringIntegrationJdbcIntTest(@Autowired val jdbcTemplate: JdbcTemplate, @A
                     payload = EXCLUDED.payload
                 """
             )) { id("jdbcHandler") }
-        }
-
-    }
-
-    companion object {
-
-        @Container
-        val container = PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:13.2")).apply {
-            withDatabaseName("postgres")
-            withUsername("postgres")
-            withPassword("postgres")
-        }
-
-        @JvmStatic
-        @DynamicPropertySource
-        fun properties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url", container::getJdbcUrl)
-            registry.add("spring.datasource.password", container::getPassword)
-            registry.add("spring.datasource.username", container::getUsername)
         }
 
     }
