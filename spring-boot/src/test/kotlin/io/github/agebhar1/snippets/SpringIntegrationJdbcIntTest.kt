@@ -26,11 +26,11 @@ import org.testcontainers.utility.DockerImageName
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @JdbcTest
 @Testcontainers
-class SpringIntegrationJdbcIntTest {
+class SpringIntegrationJdbcIntTest(@Autowired val jdbcTemplate: JdbcTemplate, @Autowired val messagingTemplate: MessagingTemplate) {
 
     @Test
     @Sql("/sql/spring-integration-jdbc-int-test.sql")
-    fun `message payload should be present in database table`(@Autowired jdbcTemplate: JdbcTemplate, @Autowired messagingTemplate: MessagingTemplate) {
+    fun `message payload should be present in database table`() {
 
         val message =MessageBuilder
                 .withPayload("hello")
@@ -45,7 +45,7 @@ class SpringIntegrationJdbcIntTest {
 
     @Test
     @Sql("/sql/spring-integration-jdbc-int-test.sql")
-    fun `message payload should be updated in database table`(@Autowired jdbcTemplate: JdbcTemplate, @Autowired messagingTemplate: MessagingTemplate) {
+    fun `message payload should be updated in database table`() {
 
         val fstMessage = MessageBuilder
                 .withPayload("hello")
