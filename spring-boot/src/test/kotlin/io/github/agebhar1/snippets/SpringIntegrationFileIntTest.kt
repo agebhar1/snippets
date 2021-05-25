@@ -1,5 +1,11 @@
 package io.github.agebhar1.snippets
 
+import java.nio.file.Path
+import java.util.Locale
+import java.util.concurrent.TimeUnit
+import kotlin.io.path.div
+import kotlin.io.path.moveTo
+import kotlin.io.path.writeText
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -17,67 +23,57 @@ import org.springframework.integration.file.dsl.FileInboundChannelAdapterSpec
 import org.springframework.integration.file.dsl.Files.inboundAdapter
 import org.springframework.integration.file.dsl.Files.toStringTransformer
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import java.nio.file.Path
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-import kotlin.io.path.div
-import kotlin.io.path.moveTo
-import kotlin.io.path.writeText
 
 @ExtendWith(SpringExtension::class)
 class SpringIntegrationFileIntTest {
 
-    @Test
-    fun `file content should be read and transformed also file should be kept`(@Autowired output: QueueChannel) {
+  @Test
+  fun `file content should be read and transformed also file should be kept`(
+      @Autowired output: QueueChannel
+  ) {
 
-        val file = with(tmpPath / "some.txt.write") {
-            writeText("content")
-            moveTo(tmpPath / "some.txt")
+    val file =
+        with(tmpPath / "some.txt.write") {
+          writeText("content")
+          moveTo(tmpPath / "some.txt")
         }
 
-        val message = output.receive()
+    val message = output.receive()
 
-        assertThat(message).matches {
-            it?.payload is String && it.payload == "CONTENT"
+    assertThat(message).matches { it?.payload is String && it.payload == "CONTENT" }
+    assertThat(file).exists()
+  }
+
+  @EnableIntegration
+  @TestConfiguration
+  class Configuration {
+
+    @Bean fun output(): QueueChannel = MessageChannels.queue().get()
+
+    @Bean
+    fun flow() =
+        integrationFlow(
+            filesFromDirectory(tmpPath) {
+              patternFilter("*.txt")
+              watchEvents(CREATE)
+              useWatchService(true)
+            },
+            { poller { it.fixedRate(1, TimeUnit.SECONDS, 1) } }) {
+          transform(toStringTransformer())
+          transform<String> { it.uppercase(Locale.getDefault()) }
+          channel(output())
         }
-        assertThat(file).exists()
+
+    private fun filesFromDirectory(
+        directory: Path,
+        configurer: FileInboundChannelAdapterSpec.() -> Unit
+    ): FileReadingMessageSource {
+      return inboundAdapter(directory.toFile()).also { configurer(it) }.get()
     }
+  }
 
-    @EnableIntegration
-    @TestConfiguration
-    class Configuration {
+  companion object {
 
-        @Bean
-        fun output(): QueueChannel = MessageChannels.queue().get()
-
-        @Bean
-        fun flow() = integrationFlow(
-                filesFromDirectory(tmpPath) {
-                    patternFilter("*.txt")
-                    watchEvents(CREATE)
-                    useWatchService(true)
-                }, {
-                    poller {
-                        it.fixedRate(1, TimeUnit.SECONDS, 1)
-                    }
-                }
-        ) {
-            transform(toStringTransformer())
-            transform<String> { it.uppercase(Locale.getDefault()) }
-            channel(output())
-        }
-
-        private fun filesFromDirectory(directory: Path, configurer: FileInboundChannelAdapterSpec.() -> Unit): FileReadingMessageSource {
-            return inboundAdapter(directory.toFile()).also { configurer(it) }.get()
-        }
-    }
-
-    companion object {
-
-        @TempDir
-        @JvmStatic
-        lateinit var tmpPath: Path
-
-    }
-
+    @TempDir @JvmStatic lateinit var tmpPath: Path
+  }
 }

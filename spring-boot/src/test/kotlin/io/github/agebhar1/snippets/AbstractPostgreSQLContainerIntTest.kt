@@ -8,23 +8,22 @@ import org.testcontainers.utility.DockerImageName
 
 abstract class AbstractPostgreSQLContainerIntTest {
 
-    companion object {
+  companion object {
 
-        @Container
-        val container = PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:13.2")).apply {
-            withDatabaseName("postgres")
-            withUsername("postgres")
-            withPassword("postgres")
+    @Container
+    val container =
+        PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:13.2")).apply {
+          withDatabaseName("postgres")
+          withUsername("postgres")
+          withPassword("postgres")
         }
 
-        @JvmStatic
-        @DynamicPropertySource
-        fun properties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url", container::getJdbcUrl)
-            registry.add("spring.datasource.password", container::getPassword)
-            registry.add("spring.datasource.username", container::getUsername)
-        }
-
+    @JvmStatic
+    @DynamicPropertySource
+    fun properties(registry: DynamicPropertyRegistry) {
+      registry.add("spring.datasource.url", container::getJdbcUrl)
+      registry.add("spring.datasource.password", container::getPassword)
+      registry.add("spring.datasource.username", container::getUsername)
     }
-
+  }
 }

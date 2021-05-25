@@ -18,33 +18,32 @@ import org.testcontainers.utility.DockerImageName
 @Testcontainers
 class PostgreSQLContainerIntTest {
 
-    @Test
-    fun `JDBC template is not null`(@Autowired jdbcTemplate: JdbcTemplate) {
-        assertThat(jdbcTemplate).isNotNull
-    }
+  @Test
+  fun `JDBC template is not null`(@Autowired jdbcTemplate: JdbcTemplate) {
+    assertThat(jdbcTemplate).isNotNull
+  }
 
-    @Test
-    fun `container provides PostgreSQL JDBC URL`() {
-        assertThat(container.jdbcUrl).startsWith("jdbc:postgresql://localhost:")
-    }
+  @Test
+  fun `container provides PostgreSQL JDBC URL`() {
+    assertThat(container.jdbcUrl).startsWith("jdbc:postgresql://localhost:")
+  }
 
-    companion object {
+  companion object {
 
-        @Container
-        val container = PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:13.2")).apply {
-            withDatabaseName("postgres")
-            withUsername("postgres")
-            withPassword("postgres")
+    @Container
+    val container =
+        PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:13.2")).apply {
+          withDatabaseName("postgres")
+          withUsername("postgres")
+          withPassword("postgres")
         }
 
-        @JvmStatic
-        @DynamicPropertySource
-        fun properties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url", container::getJdbcUrl)
-            registry.add("spring.datasource.password", container::getPassword)
-            registry.add("spring.datasource.username", container::getUsername)
-        }
-
+    @JvmStatic
+    @DynamicPropertySource
+    fun properties(registry: DynamicPropertyRegistry) {
+      registry.add("spring.datasource.url", container::getJdbcUrl)
+      registry.add("spring.datasource.password", container::getPassword)
+      registry.add("spring.datasource.username", container::getUsername)
     }
-
+  }
 }
