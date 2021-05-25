@@ -20,6 +20,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.nio.file.Path
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.div
 import kotlin.io.path.moveTo
 import kotlin.io.path.writeText
 
@@ -27,11 +28,11 @@ import kotlin.io.path.writeText
 class SpringIntegrationFileIntTest {
 
     @Test
-    fun `file content should be read and transformed and file should be kept`(@Autowired output: QueueChannel) {
+    fun `file content should be read and transformed also file should be kept`(@Autowired output: QueueChannel) {
 
-        val file = with(tmpPath.resolve("some.txt.write")) {
+        val file = with(tmpPath / "some.txt.write") {
             writeText("content")
-            moveTo(tmpPath.resolve("some.txt"))
+            moveTo(tmpPath / "some.txt")
         }
 
         val message = output.receive()
