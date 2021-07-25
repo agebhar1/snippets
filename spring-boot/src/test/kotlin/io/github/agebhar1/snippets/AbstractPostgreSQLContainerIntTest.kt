@@ -12,7 +12,7 @@ abstract class AbstractPostgreSQLContainerIntTest {
 
     @Container
     val container =
-        PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:13.2")).apply {
+        PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:13.3")).apply {
           withDatabaseName("postgres")
           withUsername("postgres")
           withPassword("postgres")
