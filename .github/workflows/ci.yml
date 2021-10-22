@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        javaVersion: [ "8", "11", "16" ]
+        javaVersion: [ "8", "11", "17" ]
         javaDistribution: [ "adopt", "zulu" ]
     name: Java ${{ matrix.javaVersion }}-${{ matrix.javaDistribution }}
     steps:
