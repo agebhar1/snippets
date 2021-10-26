@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         javaVersion: [ "8", "11", "17" ]
-        javaDistribution: [ "adopt", "zulu" ]
+        javaDistribution: [ "temurin", "zulu" ]
     name: Java ${{ matrix.javaVersion }}-${{ matrix.javaDistribution }}
     steps:
       - uses: actions/checkout@v2
