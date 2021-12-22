@@ -20,7 +20,7 @@
     <properties>
         <!-- plugin version(s) -->
         <java.version>1.8</java.version>
-        <ktfmt.version>0.29</ktfmt.version>
+        <ktfmt.version>0.30</ktfmt.version>
         <spotless.version>2.17.7</spotless.version>
         <!-- dependency version(s) -->
         <testcontainers.version>1.16.2</testcontainers.version>
