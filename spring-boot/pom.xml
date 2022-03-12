@@ -23,7 +23,7 @@
         <ktfmt.version>0.34</ktfmt.version>
         <spotless.version>2.21.0</spotless.version>
         <!-- dependency version(s) -->
-        <testcontainers.version>1.16.2</testcontainers.version>
+        <testcontainers.version>1.16.3</testcontainers.version>
     </properties>
 
     <dependencies>
