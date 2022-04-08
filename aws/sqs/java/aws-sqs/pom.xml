@@ -38,6 +38,16 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>amazon-sqs-java-extended-client-lib</artifactId>
+                <version>2.0.2</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.13.2.2</version>
+            </dependency>
+            <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>bom</artifactId>
                 <version>2.17.165</version>
@@ -64,12 +74,24 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>amazon-sqs-java-extended-client-lib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
