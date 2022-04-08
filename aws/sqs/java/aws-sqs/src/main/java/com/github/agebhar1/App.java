@@ -1,9 +1,12 @@
 package com.github.agebhar1;
 
+import com.amazon.sqs.javamessaging.AmazonSQSExtendedClient;
+import com.amazon.sqs.javamessaging.ExtendedClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SqsException;
@@ -13,6 +16,8 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class App {
 
@@ -21,14 +26,16 @@ public class App {
     private final static String Queue = "";
     private final static Logger logger = LoggerFactory.getLogger(App.class);
 
+    private final static String Bucket = "";
+
     public static void main(String[] args) throws URISyntaxException {
-        async(args);
+        largeMsg(args);
     }
 
     public static void async(String[] args) throws URISyntaxException {
 
         final var asyncSqsClient = SqsAsyncClient.builder()
-                .credentialsProvider(ProfileCredentialsProvider.create(""))
+                .credentialsProvider(ProfileCredentialsProvider.create())
                 .region(Region.EU_CENTRAL_1)
                 .build();
 
@@ -41,14 +48,36 @@ public class App {
     public static void sync(String[] args) throws URISyntaxException {
 
         final var sqsClient = SqsClient.builder()
-                .credentialsProvider(ProfileCredentialsProvider.create(""))
+                .credentialsProvider(ProfileCredentialsProvider.create())
                 .region(Region.EU_CENTRAL_1)
                 .build();
 
         var message = "Hello SQS! " + Instant.now();
 
-        sendMessage(sqsClient, new URI(Queue), message);
+        sendMessage(sqsClient, new URI(Queue), message + "B");
         receiveMessages(sqsClient, new URI(Queue));
+    }
+
+    public static void largeMsg(String[] args) throws URISyntaxException {
+
+        var s3 = S3Client.builder()
+                .credentialsProvider(ProfileCredentialsProvider.create())
+                .region(Region.EU_CENTRAL_1)
+                .build();
+
+        final var sqsClient = SqsClient.builder()
+                .credentialsProvider(ProfileCredentialsProvider.create())
+                .region(Region.EU_CENTRAL_1)
+                .build();
+
+        var cfg = new ExtendedClientConfiguration()
+                .withPayloadSupportEnabled(s3, Bucket);
+        var xtd = new AmazonSQSExtendedClient(sqsClient, cfg);
+
+        var message = Stream.generate(() -> "A").limit(256 * 1024).collect(Collectors.joining());
+
+        sendMessage(xtd, new URI(Queue), message + "B");
+        receiveMessages(xtd, new URI(Queue));
     }
 
     private static void sendMessage(final SqsClient sqsClient, final URI queue, final String message) {
