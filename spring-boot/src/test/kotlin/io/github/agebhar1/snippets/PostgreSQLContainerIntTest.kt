@@ -32,11 +32,11 @@ class PostgreSQLContainerIntTest {
 
     @Container
     val container =
-        PostgreSQLContainer(DockerImageName.parse("postgres:14.2")).apply {
-          withDatabaseName("postgres")
-          withUsername("postgres")
-          withPassword("postgres")
-        }
+      PostgreSQLContainer(DockerImageName.parse("postgres:14.2")).apply {
+        withDatabaseName("postgres")
+        withUsername("postgres")
+        withPassword("postgres")
+      }
 
     @JvmStatic
     @DynamicPropertySource

@@ -22,8 +22,8 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @JdbcTest
 @Testcontainers
 class SpringIntegrationJdbcIntTest(
-    @Autowired val jdbcTemplate: JdbcTemplate,
-    @Autowired val messagingTemplate: MessagingTemplate
+  @Autowired val jdbcTemplate: JdbcTemplate,
+  @Autowired val messagingTemplate: MessagingTemplate
 ) : AbstractPostgreSQLContainerIntTest() {
 
   @Test
@@ -46,12 +46,12 @@ class SpringIntegrationJdbcIntTest(
     messagingTemplate.send(fstMessage)
 
     val sndMessage =
-        MessageBuilder.withPayload("hello from jdbc").setHeader("externalId", 1).build()
+      MessageBuilder.withPayload("hello from jdbc").setHeader("externalId", 1).build()
 
     messagingTemplate.send(sndMessage)
 
     assertThat(countRowsInTableWhere(jdbcTemplate, "message", "payload = 'hello from jdbc'"))
-        .isEqualTo(1)
+      .isEqualTo(1)
   }
 
   @EnableIntegration
@@ -64,11 +64,11 @@ class SpringIntegrationJdbcIntTest(
 
     @Bean
     fun flow(jdbcTemplate: JdbcTemplate) =
-        integrationFlow(input()) {
-          handle(
-              JdbcMessageHandler(
-                  jdbcTemplate,
-                  """
+      integrationFlow(input()) {
+        handle(
+          JdbcMessageHandler(
+            jdbcTemplate,
+            """
                 INSERT INTO message(id, messageId, payload)
                 VALUES (:headers[externalId], :headers[id], :payload)
                 ON CONFLICT (id) 
@@ -76,8 +76,8 @@ class SpringIntegrationJdbcIntTest(
                     messageId = EXCLUDED.messageId,
                     payload = EXCLUDED.payload
                 """)) {
-            id("jdbcHandler")
-          }
+          id("jdbcHandler")
         }
+      }
   }
 }

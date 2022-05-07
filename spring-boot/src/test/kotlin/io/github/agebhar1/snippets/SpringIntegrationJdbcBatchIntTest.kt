@@ -23,8 +23,8 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @JdbcTest
 @Testcontainers
 class SpringIntegrationJdbcBatchIntTest(
-    @Autowired val jdbcTemplate: JdbcTemplate,
-    @Autowired val messagingTemplate: MessagingTemplate
+  @Autowired val jdbcTemplate: JdbcTemplate,
+  @Autowired val messagingTemplate: MessagingTemplate
 ) : AbstractPostgreSQLContainerIntTest() {
 
   @Test
@@ -34,16 +34,15 @@ class SpringIntegrationJdbcBatchIntTest(
     val messageId = randomUUID()
 
     val message =
-        MessageBuilder.withPayload(
-                listOf(
-                    listOf(1, "1st message"), listOf(2, "2nd message"), listOf(3, "3rd message")))
-            .setHeader("messageId", messageId)
-            .build()
+      MessageBuilder.withPayload(
+          listOf(listOf(1, "1st message"), listOf(2, "2nd message"), listOf(3, "3rd message")))
+        .setHeader("messageId", messageId)
+        .build()
 
     messagingTemplate.send(message)
 
     assertThat(countRowsInTableWhere(jdbcTemplate, "message", "messageId = '$messageId'"))
-        .isEqualTo(3)
+      .isEqualTo(3)
   }
 
   @Test
@@ -53,29 +52,25 @@ class SpringIntegrationJdbcBatchIntTest(
     val messageId = randomUUID()
 
     val fstMessage =
-        MessageBuilder.withPayload(
-                listOf(
-                    listOf(1, "1st message"), listOf(2, "2nd message"), listOf(3, "3rd message")))
-            .setHeader("messageId", messageId)
-            .build()
+      MessageBuilder.withPayload(
+          listOf(listOf(1, "1st message"), listOf(2, "2nd message"), listOf(3, "3rd message")))
+        .setHeader("messageId", messageId)
+        .build()
 
     messagingTemplate.send(fstMessage)
 
     val sndMessage =
-        MessageBuilder.withPayload(
-                listOf(
-                    listOf(1, "message one"), listOf(2, "message two"), listOf(3, "message three")))
-            .setHeader("messageId", messageId)
-            .build()
+      MessageBuilder.withPayload(
+          listOf(listOf(1, "message one"), listOf(2, "message two"), listOf(3, "message three")))
+        .setHeader("messageId", messageId)
+        .build()
 
     messagingTemplate.send(sndMessage)
 
     assertThat(
-            countRowsInTableWhere(
-                jdbcTemplate,
-                "message",
-                "payload IN ('message one', 'message two', 'message three')"))
-        .isEqualTo(3)
+        countRowsInTableWhere(
+          jdbcTemplate, "message", "payload IN ('message one', 'message two', 'message three')"))
+      .isEqualTo(3)
   }
 
   @EnableIntegration
@@ -88,11 +83,11 @@ class SpringIntegrationJdbcBatchIntTest(
 
     @Bean
     fun flow(jdbcTemplate: JdbcTemplate) =
-        integrationFlow(input()) {
-          handle(
-              JdbcMessageHandler(
-                  jdbcTemplate,
-                  """
+      integrationFlow(input()) {
+        handle(
+          JdbcMessageHandler(
+            jdbcTemplate,
+            """
                   INSERT INTO message(id, messageId, payload)
                   VALUES (:payload[0], :headers[messageId], :payload[1])
                   ON CONFLICT (id)
@@ -100,8 +95,8 @@ class SpringIntegrationJdbcBatchIntTest(
                     messageId = EXCLUDED.messageId,
                     payload = EXCLUDED.payload
                   """)) {
-            id("jdbcHandler")
-          }
+          id("jdbcHandler")
         }
+      }
   }
 }

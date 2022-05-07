@@ -29,14 +29,14 @@ class SpringIntegrationFileIntTest {
 
   @Test
   fun `file content should be read and transformed also file should be kept`(
-      @Autowired output: QueueChannel
+    @Autowired output: QueueChannel
   ) {
 
     val file =
-        with(tmpPath / "some.txt.write") {
-          writeText("content")
-          moveTo(tmpPath / "some.txt")
-        }
+      with(tmpPath / "some.txt.write") {
+        writeText("content")
+        moveTo(tmpPath / "some.txt")
+      }
 
     val message = output.receive()
 
@@ -52,21 +52,21 @@ class SpringIntegrationFileIntTest {
 
     @Bean
     fun flow() =
-        integrationFlow(
-            filesFromDirectory(tmpPath) {
-              patternFilter("*.txt")
-              watchEvents(CREATE)
-              useWatchService(true)
-            },
-            { poller { it.fixedRate(1, TimeUnit.SECONDS, 1) } }) {
-          transform(toStringTransformer())
-          transform<String> { it.uppercase(Locale.getDefault()) }
-          channel(output())
-        }
+      integrationFlow(
+        filesFromDirectory(tmpPath) {
+          patternFilter("*.txt")
+          watchEvents(CREATE)
+          useWatchService(true)
+        },
+        { poller { it.fixedRate(1, TimeUnit.SECONDS, 1) } }) {
+        transform(toStringTransformer())
+        transform<String> { it.uppercase(Locale.getDefault()) }
+        channel(output())
+      }
 
     private fun filesFromDirectory(
-        directory: Path,
-        configurer: FileInboundChannelAdapterSpec.() -> Unit
+      directory: Path,
+      configurer: FileInboundChannelAdapterSpec.() -> Unit
     ): FileReadingMessageSource {
       return inboundAdapter(directory.toFile()).also { configurer(it) }.get()
     }
