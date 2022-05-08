@@ -23,6 +23,7 @@ import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
 import org.springframework.messaging.MessageHeaders
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Service
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
 import org.springframework.transaction.annotation.Propagation.MANDATORY
@@ -62,6 +63,7 @@ class JustAService(
 }
 
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@DirtiesContext
 @Import(value = [JdbcInboxXmlMessageRepository::class, JustAService::class])
 @JdbcTest
 @Sql(
