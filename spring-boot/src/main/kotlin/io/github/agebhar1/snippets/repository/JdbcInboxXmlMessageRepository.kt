@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional
 
 import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
+import java.util.UUID
 
 @Service
 class JdbcInboxXmlMessageRepository(
@@ -28,7 +29,15 @@ class JdbcInboxXmlMessageRepository(
                     "data" to sqlXmlHandler.newSqlXmlValue(entity.data)))
 
         jdbcTemplate.update(
-            "INSERT INTO INBOX_XML_MESSAGE VALUES(:id, :occurredAtUTC, null, :type, :data)",
+            "INSERT INTO INBOX_XML_MESSAGE VALUES(:id, :occurredAtUTC, null, null, :type, :data)",
             parameterSource)
+    }
+
+    @Transactional
+    override fun deleteById(id: UUID) {
+        jdbcTemplate.update(
+            "DELETE FROM INBOX_XML_MESSAGE WHERE id = :id".trimIndent(),
+            MapSqlParameterSource(mapOf("id" to id))
+        )
     }
 }

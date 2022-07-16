@@ -8,9 +8,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
@@ -18,8 +17,8 @@ import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
 import java.time.Instant
 import java.util.UUID
 
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(JdbcInboxXmlMessageRepository::class)
+@AutoConfigureTestDatabase(replace = NONE)
+@Import(JdbcInboxXmlMessageRepository::class, Jdbc4SqlXmlHandler::class)
 @JdbcTest
 class JdbcInboxXmlMessageRepositoryTest(
     @Autowired private val jdbcTemplate: NamedParameterJdbcTemplate,
@@ -42,7 +41,8 @@ class JdbcInboxXmlMessageRepositoryTest(
                     SELECT id FROM INBOX_XML_MESSAGE
                     WHERE
                         occurred_at_utc = timestamp '2022-05-07 10:10:38' AND
-                        processed_at_utc IS NULL AND
+                        processing_started_at_utc IS NULL AND
+                        processing_started_by IS NULL AND
                         type = 'NONE' AND
                         data IS DOCUMENT
                 """.trimIndent(),
@@ -52,8 +52,26 @@ class JdbcInboxXmlMessageRepositoryTest(
         assertThat(exists).containsExactly(UUID.fromString("99f4ade3-f6d1-49df-a52f-977e35f9a2cd"))
     }
 
-    @TestConfiguration
-    class Configuration {
-        @Bean fun sqlXmlHandler() = Jdbc4SqlXmlHandler()
+    @Test
+    fun `should delete entity by Id`() {
+        val id = UUID.fromString("99f4ade3-f6d1-49df-a52f-977e35f9a2cd")
+        val entity =
+            InboxXmlMessage(
+                id,
+                occurredAtUtc = Instant.parse("2022-05-07T10:10:38Z"),
+                type = "NONE",
+                data = "<some>data</some>".toDocument())
+
+        repository.save(entity)
+        repository.deleteById(id)
+
+        val exists = jdbcTemplate.queryForObject(
+            """
+                SELECT count(*) = 1 FROM INBOX_XML_MESSAGE
+                WHERE id = :id
+            """.trimIndent(),
+            mapOf("id" to id),
+            Boolean::class.java)
+        assertThat(exists).isFalse
     }
 }

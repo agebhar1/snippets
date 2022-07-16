@@ -15,4 +15,5 @@ data class InboxXmlMessage(
 
 interface InboxXmlMessageRepository {
     fun save(entity: InboxXmlMessage)
+    fun deleteById(id: UUID)
 }
