@@ -31,7 +31,6 @@ import org.springframework.transaction.annotation.Propagation.NEVER
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.util.IdGenerator
-import org.testcontainers.junit.jupiter.Testcontainers
 import org.w3c.dom.Document
 
 import java.lang.IllegalStateException
@@ -69,7 +68,6 @@ class JustAService(
 @Sql(
     executionPhase = AFTER_TEST_METHOD,
     statements = ["DELETE FROM INBOX_XML_MESSAGE WHERE id = '4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9'"])
-@Testcontainers
 @Transactional(propagation = NEVER)
 class SpringIntegrationInboundChannelEventualConsistencyTest(
     @Autowired val txTemplate: TransactionTemplate,

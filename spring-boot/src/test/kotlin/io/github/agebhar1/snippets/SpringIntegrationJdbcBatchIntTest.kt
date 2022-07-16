@@ -16,13 +16,11 @@ import org.springframework.integration.support.MessageBuilder
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.jdbc.JdbcTestUtils.countRowsInTableWhere
-import org.testcontainers.junit.jupiter.Testcontainers
 
 import java.util.UUID.randomUUID
 
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @JdbcTest
-@Testcontainers
 class SpringIntegrationJdbcBatchIntTest(
     @Autowired val jdbcTemplate: JdbcTemplate,
     @Autowired val messagingTemplate: MessagingTemplate

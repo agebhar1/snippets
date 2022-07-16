@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
-import org.testcontainers.junit.jupiter.Testcontainers
 
 import java.time.Instant
 import java.util.UUID
@@ -22,7 +21,6 @@ import java.util.UUID
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(JdbcInboxXmlMessageRepository::class)
 @JdbcTest
-@Testcontainers
 class JdbcInboxXmlMessageRepositoryTest(
     @Autowired private val jdbcTemplate: NamedParameterJdbcTemplate,
     @Autowired private val repository: JdbcInboxXmlMessageRepository
