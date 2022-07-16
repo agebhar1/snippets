@@ -1,6 +1,5 @@
 package io.github.agebhar1.snippets
 
-import java.util.UUID.randomUUID
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,75 +18,73 @@ import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.jdbc.JdbcTestUtils.countRowsInTableWhere
 import org.testcontainers.junit.jupiter.Testcontainers
 
+import java.util.UUID.randomUUID
+
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @JdbcTest
 @Testcontainers
 class SpringIntegrationJdbcBatchIntTest(
-  @Autowired val jdbcTemplate: JdbcTemplate,
-  @Autowired val messagingTemplate: MessagingTemplate
+    @Autowired val jdbcTemplate: JdbcTemplate,
+    @Autowired val messagingTemplate: MessagingTemplate
 ) : AbstractPostgreSQLContainerIntTest() {
+    @Test
+    @Sql("/sql/spring-integration-jdbc-int-test.sql")
+    fun `list of tuples should be present in database table`() {
+        val messageId = randomUUID()
 
-  @Test
-  @Sql("/sql/spring-integration-jdbc-int-test.sql")
-  fun `list of tuples should be present in database table`() {
+        val message =
+            MessageBuilder.withPayload(
+                listOf(listOf(1, "1st message"), listOf(2, "2nd message"), listOf(3, "3rd message")))
+                .setHeader("messageId", messageId)
+                .build()
 
-    val messageId = randomUUID()
+        messagingTemplate.send(message)
 
-    val message =
-      MessageBuilder.withPayload(
-          listOf(listOf(1, "1st message"), listOf(2, "2nd message"), listOf(3, "3rd message")))
-        .setHeader("messageId", messageId)
-        .build()
+        assertThat(countRowsInTableWhere(jdbcTemplate, "message", "messageId = '$messageId'"))
+            .isEqualTo(3)
+    }
 
-    messagingTemplate.send(message)
+    @Test
+    @Sql("/sql/spring-integration-jdbc-int-test.sql")
+    fun `list of tuples should be updated in database table`() {
+        val messageId = randomUUID()
 
-    assertThat(countRowsInTableWhere(jdbcTemplate, "message", "messageId = '$messageId'"))
-      .isEqualTo(3)
-  }
+        val fstMessage =
+            MessageBuilder.withPayload(
+                listOf(listOf(1, "1st message"), listOf(2, "2nd message"), listOf(3, "3rd message")))
+                .setHeader("messageId", messageId)
+                .build()
 
-  @Test
-  @Sql("/sql/spring-integration-jdbc-int-test.sql")
-  fun `list of tuples should be updated in database table`() {
+        messagingTemplate.send(fstMessage)
 
-    val messageId = randomUUID()
+        val sndMessage =
+            MessageBuilder.withPayload(
+                listOf(listOf(1, "message one"), listOf(2, "message two"), listOf(3, "message three")))
+                .setHeader("messageId", messageId)
+                .build()
 
-    val fstMessage =
-      MessageBuilder.withPayload(
-          listOf(listOf(1, "1st message"), listOf(2, "2nd message"), listOf(3, "3rd message")))
-        .setHeader("messageId", messageId)
-        .build()
+        messagingTemplate.send(sndMessage)
 
-    messagingTemplate.send(fstMessage)
+        assertThat(
+            countRowsInTableWhere(
+                jdbcTemplate, "message", "payload IN ('message one', 'message two', 'message three')"))
+            .isEqualTo(3)
+    }
 
-    val sndMessage =
-      MessageBuilder.withPayload(
-          listOf(listOf(1, "message one"), listOf(2, "message two"), listOf(3, "message three")))
-        .setHeader("messageId", messageId)
-        .build()
+    @EnableIntegration
+    @TestConfiguration
+    class Configuration {
+        @Bean fun input() = DirectChannel()
 
-    messagingTemplate.send(sndMessage)
+        @Bean fun messagingTemplate() = MessagingTemplate(input())
 
-    assertThat(
-        countRowsInTableWhere(
-          jdbcTemplate, "message", "payload IN ('message one', 'message two', 'message three')"))
-      .isEqualTo(3)
-  }
-
-  @EnableIntegration
-  @TestConfiguration
-  class Configuration {
-
-    @Bean fun input() = DirectChannel()
-
-    @Bean fun messagingTemplate() = MessagingTemplate(input())
-
-    @Bean
-    fun flow(jdbcTemplate: JdbcTemplate) =
-      integrationFlow(input()) {
-        handle(
-          JdbcMessageHandler(
-            jdbcTemplate,
-            """
+        @Bean
+        fun flow(jdbcTemplate: JdbcTemplate) =
+            integrationFlow(input()) {
+                handle(
+                    JdbcMessageHandler(
+                        jdbcTemplate,
+                        """
                   INSERT INTO message(id, messageId, payload)
                   VALUES (:payload[0], :headers[messageId], :payload[1])
                   ON CONFLICT (id)
@@ -95,8 +92,8 @@ class SpringIntegrationJdbcBatchIntTest(
                     messageId = EXCLUDED.messageId,
                     payload = EXCLUDED.payload
                   """)) {
-          id("jdbcHandler")
-        }
-      }
-  }
+                    id("jdbcHandler")
+                }
+            }
+    }
 }

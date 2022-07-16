@@ -22,53 +22,49 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @JdbcTest
 @Testcontainers
 class SpringIntegrationJdbcIntTest(
-  @Autowired val jdbcTemplate: JdbcTemplate,
-  @Autowired val messagingTemplate: MessagingTemplate
+    @Autowired val jdbcTemplate: JdbcTemplate,
+    @Autowired val messagingTemplate: MessagingTemplate
 ) : AbstractPostgreSQLContainerIntTest() {
+    @Test
+    @Sql("/sql/spring-integration-jdbc-int-test.sql")
+    fun `message payload should be present in database table`() {
+        val message = MessageBuilder.withPayload("hello").setHeader("externalId", 1).build()
 
-  @Test
-  @Sql("/sql/spring-integration-jdbc-int-test.sql")
-  fun `message payload should be present in database table`() {
+        messagingTemplate.send(message)
 
-    val message = MessageBuilder.withPayload("hello").setHeader("externalId", 1).build()
+        assertThat(countRowsInTableWhere(jdbcTemplate, "message", "payload = 'hello'")).isEqualTo(1)
+    }
 
-    messagingTemplate.send(message)
+    @Test
+    @Sql("/sql/spring-integration-jdbc-int-test.sql")
+    fun `message payload should be updated in database table`() {
+        val fstMessage = MessageBuilder.withPayload("hello").setHeader("externalId", 1).build()
 
-    assertThat(countRowsInTableWhere(jdbcTemplate, "message", "payload = 'hello'")).isEqualTo(1)
-  }
+        messagingTemplate.send(fstMessage)
 
-  @Test
-  @Sql("/sql/spring-integration-jdbc-int-test.sql")
-  fun `message payload should be updated in database table`() {
+        val sndMessage =
+            MessageBuilder.withPayload("hello from jdbc").setHeader("externalId", 1).build()
 
-    val fstMessage = MessageBuilder.withPayload("hello").setHeader("externalId", 1).build()
+        messagingTemplate.send(sndMessage)
 
-    messagingTemplate.send(fstMessage)
+        assertThat(countRowsInTableWhere(jdbcTemplate, "message", "payload = 'hello from jdbc'"))
+            .isEqualTo(1)
+    }
 
-    val sndMessage =
-      MessageBuilder.withPayload("hello from jdbc").setHeader("externalId", 1).build()
+    @EnableIntegration
+    @TestConfiguration
+    class Configuration {
+        @Bean fun input() = DirectChannel()
 
-    messagingTemplate.send(sndMessage)
+        @Bean fun messagingTemplate() = MessagingTemplate(input())
 
-    assertThat(countRowsInTableWhere(jdbcTemplate, "message", "payload = 'hello from jdbc'"))
-      .isEqualTo(1)
-  }
-
-  @EnableIntegration
-  @TestConfiguration
-  class Configuration {
-
-    @Bean fun input() = DirectChannel()
-
-    @Bean fun messagingTemplate() = MessagingTemplate(input())
-
-    @Bean
-    fun flow(jdbcTemplate: JdbcTemplate) =
-      integrationFlow(input()) {
-        handle(
-          JdbcMessageHandler(
-            jdbcTemplate,
-            """
+        @Bean
+        fun flow(jdbcTemplate: JdbcTemplate) =
+            integrationFlow(input()) {
+                handle(
+                    JdbcMessageHandler(
+                        jdbcTemplate,
+                        """
                 INSERT INTO message(id, messageId, payload)
                 VALUES (:headers[externalId], :headers[id], :payload)
                 ON CONFLICT (id) 
@@ -76,8 +72,8 @@ class SpringIntegrationJdbcIntTest(
                     messageId = EXCLUDED.messageId,
                     payload = EXCLUDED.payload
                 """)) {
-          id("jdbcHandler")
-        }
-      }
-  }
+                    id("jdbcHandler")
+                }
+            }
+    }
 }

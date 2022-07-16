@@ -3,12 +3,7 @@ package io.github.agebhar1.snippets
 import io.github.agebhar1.snippets.domain.InboxXmlMessage
 import io.github.agebhar1.snippets.domain.InboxXmlMessageRepository
 import io.github.agebhar1.snippets.repository.JdbcInboxXmlMessageRepository
-import java.lang.IllegalStateException
-import java.time.Clock
-import java.time.Clock.fixed
-import java.time.Instant
-import java.time.ZoneOffset.UTC
-import java.util.UUID
+
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -38,86 +33,88 @@ import org.springframework.util.IdGenerator
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.w3c.dom.Document
 
+import java.lang.IllegalStateException
+import java.time.Clock
+import java.time.Clock.fixed
+import java.time.Instant
+import java.time.ZoneOffset.UTC
+import java.util.UUID
+
 @Service
+@Suppress("CLASS_NAME_INCORRECT")
 class JustAService(
-  private val clock: Clock,
-  private val idGenerator: IdGenerator,
-  private val repository: InboxXmlMessageRepository,
+    private val clock: Clock,
+    private val idGenerator: IdGenerator,
+    private val repository: InboxXmlMessageRepository,
 ) {
+    @ServiceActivator(inputChannel = "inbound")
+    @Transactional(propagation = MANDATORY)
+    fun handle(@Payload document: Document, headers: MessageHeaders) {
+        val entity =
+            InboxXmlMessage(
+                id = idGenerator.generateId(),
+                occurredAtUtc = Instant.now(clock),
+                type = "single",
+                data = document)
 
-  @ServiceActivator(inputChannel = "inbound")
-  @Transactional(propagation = MANDATORY)
-  fun handle(@Payload document: Document, headers: MessageHeaders) {
-
-    val entity =
-      InboxXmlMessage(
-        id = idGenerator.generateId(),
-        occurredAtUTC = Instant.now(clock),
-        type = "single",
-        data = document)
-
-    repository.save(entity)
-  }
+        repository.save(entity)
+    }
 }
 
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(value = [JdbcInboxXmlMessageRepository::class, JustAService::class])
 @JdbcTest
 @Sql(
-  executionPhase = AFTER_TEST_METHOD,
-  statements = ["DELETE FROM INBOX_XML_MESSAGE WHERE id = '4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9'"])
+    executionPhase = AFTER_TEST_METHOD,
+    statements = ["DELETE FROM INBOX_XML_MESSAGE WHERE id = '4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9'"])
 @Testcontainers
 @Transactional(propagation = NEVER)
 class SpringIntegrationInboundChannelEventualConsistencyTest(
-  @Autowired val txTemplate: TransactionTemplate,
-  @Autowired val jdbcTemplate: JdbcTemplate,
-  @Autowired private val messagingTemplate: MessagingTemplate
+    @Autowired val txTemplate: TransactionTemplate,
+    @Autowired val jdbcTemplate: JdbcTemplate,
+    @Autowired private val messagingTemplate: MessagingTemplate
 ) : AbstractPostgreSQLContainerIntTest() {
+    @Test
+    fun `should save message from channel to inbox database table and proceed normally`() {
+        val message = MessageBuilder.withPayload("<some>data</some>".toDocument()).build()
 
-  @Test
-  fun `should save message from channel to inbox database table and proceed normally`() {
+        txTemplate.execute { messagingTemplate.send(message) }
 
-    val message = MessageBuilder.withPayload("<some>data</some>".toDocument()).build()
-
-    txTemplate.execute { messagingTemplate.send(message) }
-
-    val actual =
-      jdbcTemplate.queryForObject(
-        "SELECT COUNT(*) FROM INBOX_XML_MESSAGE WHERE id = '4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9'",
-        Long::class.java)
-    assertThat(actual).isEqualTo(1)
-  }
-
-  @Test
-  fun `should not save message from channel to inbox database table if exception occurs after repository invocation`() {
-
-    val message = MessageBuilder.withPayload("<some>data</some>".toDocument()).build()
-
-    assertThrows<IllegalStateException> {
-      txTemplate.execute<Nothing> {
-        messagingTemplate.send(message)
-        throw IllegalStateException()
-      }
+        val actual =
+            jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM INBOX_XML_MESSAGE WHERE id = '4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9'",
+                Long::class.java)
+        assertThat(actual).isEqualTo(1)
     }
 
-    val actual =
-      jdbcTemplate.queryForObject("SELECT COUNT(*) FROM INBOX_XML_MESSAGE", Long::class.java)
-    assertThat(actual).isEqualTo(0)
-  }
+    @Test
+    fun `should not save message from channel to inbox database table if exception occurs after repository invocation`() {
+        val message = MessageBuilder.withPayload("<some>data</some>".toDocument()).build()
 
-  @EnableIntegration
-  @TestConfiguration
-  class Configuration {
+        assertThrows<IllegalStateException> {
+            txTemplate.execute<Nothing> {
+                messagingTemplate.send(message)
+                throw IllegalStateException()
+            }
+        }
 
-    @Bean fun clock(): Clock = fixed(Instant.parse("2022-05-07T14:05:00Z"), UTC)
+        val actual =
+            jdbcTemplate.queryForObject("SELECT COUNT(*) FROM INBOX_XML_MESSAGE", Long::class.java)
+        assertThat(actual).isEqualTo(0)
+    }
 
-    @Bean
-    fun idGenerator() = IdGenerator { UUID.fromString("4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9") }
+    @EnableIntegration
+    @TestConfiguration
+    class Configuration {
+        @Bean fun clock(): Clock = fixed(Instant.parse("2022-05-07T14:05:00Z"), UTC)
 
-    @Bean fun messagingTemplate() = MessagingTemplate(inbound())
+        @Bean
+        fun idGenerator() = IdGenerator { UUID.fromString("4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9") }
 
-    @Bean fun inbound() = DirectChannel()
+        @Bean fun messagingTemplate() = MessagingTemplate(inbound())
 
-    @Bean fun sqlXmlHandler() = Jdbc4SqlXmlHandler()
-  }
+        @Bean fun inbound() = DirectChannel()
+
+        @Bean fun sqlXmlHandler() = Jdbc4SqlXmlHandler()
+    }
 }
