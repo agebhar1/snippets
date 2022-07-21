@@ -1,0 +1,17 @@
+FROM docker.io/library/eclipse-temurin:11-jre-focal
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+        libgtk-3-0 \
+        libxi6 \
+        libxrender1 \
+        libxtst6 \
+        xvfb
+
+COPY COPY /
+
+CMD Xvfb :0 -screen 0 1920x1080x24 & \
+    export DISPLAY=:0 && \
+    cd /tmp && java Verify && \
+    kill $(pidof Xvfb)

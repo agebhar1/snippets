@@ -1,0 +1,14 @@
+FROM docker.io/library/eclipse-temurin:11-jre-alpine
+
+RUN apk update && apk upgrade && \
+    apk add \
+        gtk+2.0 \
+        libxtst \
+        xvfb
+
+COPY COPY /
+
+CMD Xvfb :0 -screen 0 1920x1080x24 & \
+    export DISPLAY=:0 && \
+    cd /tmp && java Verify && \
+    kill $(pidof Xvfb)

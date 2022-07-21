@@ -1,0 +1,17 @@
+FROM docker.io/library/eclipse-temurin:11-jre-focal
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+        libgtk-3-0 \
+        libxi6 \
+        libxrender1 \
+        libxtst6 \
+        xserver-xorg-video-dummy
+
+COPY COPY /
+
+CMD Xorg > /dev/null 2>&1 & \
+    export DISPLAY=:0 && \
+    cd /tmp && java Verify && \
+    kill $(pidof Xorg)
