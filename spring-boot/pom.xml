@@ -24,6 +24,7 @@
         <spotless.version>2.23.0</spotless.version>
         <!-- dependency version(s) -->
         <testcontainers.version>1.17.3</testcontainers.version>
+        <junit-pioneer.version>1.7.1</junit-pioneer.version>
     </properties>
 
     <dependencies>
@@ -79,7 +80,7 @@
         <dependency>
             <groupId>org.junit-pioneer</groupId>
             <artifactId>junit-pioneer</artifactId>
-            <version>1.7.0</version>
+            <version>${junit-pioneer.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
