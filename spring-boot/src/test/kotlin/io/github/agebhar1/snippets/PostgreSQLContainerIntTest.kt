@@ -32,7 +32,7 @@ class PostgreSQLContainerIntTest {
     companion object {
         @Container
         val container =
-            PostgreSQLContainer(DockerImageName.parse("postgres:14.2")).apply {
+            PostgreSQLContainer(DockerImageName.parse("postgres:14.5")).apply {
                 withDatabaseName("postgres")
                 withUsername("postgres")
                 withPassword("postgres")
