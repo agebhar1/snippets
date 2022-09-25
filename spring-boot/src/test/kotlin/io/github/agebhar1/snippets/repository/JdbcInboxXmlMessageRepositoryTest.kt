@@ -1,6 +1,5 @@
 package io.github.agebhar1.snippets.repository
 
-import io.github.agebhar1.snippets.AbstractPostgreSQLContainerIntTest
 import io.github.agebhar1.snippets.domain.InboxXmlMessage
 import io.github.agebhar1.snippets.toDocument
 
@@ -19,11 +18,11 @@ import java.util.UUID
 
 @AutoConfigureTestDatabase(replace = NONE)
 @Import(JdbcInboxXmlMessageRepository::class, Jdbc4SqlXmlHandler::class)
-@JdbcTest
+@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.5:///"])
 class JdbcInboxXmlMessageRepositoryTest(
     @Autowired private val jdbcTemplate: NamedParameterJdbcTemplate,
     @Autowired private val repository: JdbcInboxXmlMessageRepository
-) : AbstractPostgreSQLContainerIntTest() {
+) {
     @Test
     fun `should save entity`() {
         val entity =

@@ -117,7 +117,7 @@ class CustomJmsConsumer(
             JdbcInboxXmlMessageRepository::class,
             TransactionTemplateInterceptorAdvice::class,
         ])
-@SpringBootTest(properties = ["spring.artemis.embedded.queues=inbound.queue"])
+@SpringBootTest(properties = ["spring.artemis.embedded.queues=inbound.queue", "spring.datasource.url=jdbc:tc:postgresql:14.5:///"])
 @Sql(
     executionPhase = AFTER_TEST_METHOD,
     statements =
@@ -129,7 +129,7 @@ class SpringIntegrationInboundJmsEventualConsistencyTest(
     @Autowired private val jdbcTemplate: JdbcTemplate,
     @Autowired private val jmsTemplate: JmsTemplate,
     @Autowired private val txTemplateInterceptor: TransactionTemplateInterceptor
-) : AbstractPostgreSQLContainerIntTest() {
+) {
     @BeforeEach
     fun beforeEach() {
         consumer.start()

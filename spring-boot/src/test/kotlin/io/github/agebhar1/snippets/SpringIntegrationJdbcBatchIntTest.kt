@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -19,12 +20,12 @@ import org.springframework.test.jdbc.JdbcTestUtils.countRowsInTableWhere
 
 import java.util.UUID.randomUUID
 
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@JdbcTest
+@AutoConfigureTestDatabase(replace = NONE)
+@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.5:///"])
 class SpringIntegrationJdbcBatchIntTest(
     @Autowired val jdbcTemplate: JdbcTemplate,
     @Autowired val messagingTemplate: MessagingTemplate
-) : AbstractPostgreSQLContainerIntTest() {
+) {
     @Test
     @Sql("/sql/spring-integration-jdbc-int-test.sql")
     fun `list of tuples should be present in database table`() {

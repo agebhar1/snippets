@@ -6,18 +6,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
-import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.utility.DockerImageName
+import javax.sql.DataSource
 
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@JdbcTest
-@Testcontainers
+@AutoConfigureTestDatabase(replace = NONE)
+@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.5:///"])
 class PostgreSQLContainerIntTest {
     @Test
     fun `JDBC template is not null`(@Autowired jdbcTemplate: JdbcTemplate) {
@@ -25,25 +20,7 @@ class PostgreSQLContainerIntTest {
     }
 
     @Test
-    fun `container provides PostgreSQL JDBC URL`() {
-        assertThat(container.jdbcUrl).startsWith("jdbc:postgresql://localhost:")
-    }
-
-    companion object {
-        @Container
-        val container =
-            PostgreSQLContainer(DockerImageName.parse("postgres:14.5")).apply {
-                withDatabaseName("postgres")
-                withUsername("postgres")
-                withPassword("postgres")
-            }
-
-        @JvmStatic
-        @DynamicPropertySource
-        fun properties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url", container::getJdbcUrl)
-            registry.add("spring.datasource.password", container::getPassword)
-            registry.add("spring.datasource.username", container::getUsername)
-        }
+    fun `testcontainers provides PostgreSQL JDBC URL`(@Autowired dataSource: DataSource) {
+        assertThat(dataSource.connection.metaData.url).startsWith("jdbc:postgresql://localhost:")
     }
 }

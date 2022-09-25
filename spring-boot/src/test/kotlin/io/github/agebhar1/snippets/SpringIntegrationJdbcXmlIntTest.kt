@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -23,13 +24,13 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset.UTC
 import java.util.UUID
 
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@AutoConfigureTestDatabase(replace = NONE)
 @Import(Jdbc4SqlXmlHandler::class)
-@JdbcTest
+@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.5:///"])
 class SpringIntegrationJdbcXmlIntTest(
     @Autowired val jdbcTemplate: JdbcTemplate,
     @Autowired val messagingTemplate: MessagingTemplate
-) : AbstractPostgreSQLContainerIntTest() {
+) {
     @Test
     fun `message with XML payload should be present in database table`() {
         val message = MessageBuilder

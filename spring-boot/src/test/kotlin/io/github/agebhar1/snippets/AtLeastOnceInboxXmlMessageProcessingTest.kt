@@ -47,12 +47,12 @@ import kotlin.time.Duration.Companion.seconds
     Jdbc4SqlXmlHandler::class,
     ModifiableFixedUTCClock::class
 )
-@JdbcTest
+@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.5:///"])
 class AtLeastOnceInboxXmlMessageProcessingTest(
     @Autowired private val clock: ModifiableFixedUTCClock,
     @Autowired private val jdbcTemplate: NamedParameterJdbcTemplate,
     @Autowired private val repository: JdbcInboxXmlMessageRepository
-) : AbstractPostgreSQLContainerIntTest() {
+) {
     @ParameterizedTest
     @ValueSource(ints = [1, 5, 10])
     fun `should grab #limit messages if never processed before`(value: Int) {

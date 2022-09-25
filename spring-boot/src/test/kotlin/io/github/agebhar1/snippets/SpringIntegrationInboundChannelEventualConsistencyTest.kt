@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -61,10 +62,10 @@ class JustAService(
     }
 }
 
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@AutoConfigureTestDatabase(replace = NONE)
 @DirtiesContext
 @Import(value = [JdbcInboxXmlMessageRepository::class, JustAService::class])
-@JdbcTest
+@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.5:///"])
 @Sql(
     executionPhase = AFTER_TEST_METHOD,
     statements = ["DELETE FROM INBOX_XML_MESSAGE WHERE id = '4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9'"])
@@ -73,7 +74,7 @@ class SpringIntegrationInboundChannelEventualConsistencyTest(
     @Autowired val txTemplate: TransactionTemplate,
     @Autowired val jdbcTemplate: JdbcTemplate,
     @Autowired private val messagingTemplate: MessagingTemplate
-) : AbstractPostgreSQLContainerIntTest() {
+) {
     @Test
     fun `should save message from channel to inbox database table and proceed normally`() {
         val message = MessageBuilder.withPayload("<some>data</some>".toDocument()).build()
