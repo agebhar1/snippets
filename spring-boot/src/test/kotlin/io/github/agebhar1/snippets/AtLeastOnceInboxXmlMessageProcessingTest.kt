@@ -10,6 +10,7 @@ import io.github.agebhar1.snippets.AtLeastOnceInboxXmlMessageProcessingTest.Modi
 import io.github.agebhar1.snippets.domain.InboxXmlMessage
 import io.github.agebhar1.snippets.repository.JdbcInboxXmlMessageRepository
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -26,6 +27,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
+import java.sql.Timestamp
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -38,6 +40,7 @@ import java.util.concurrent.ForkJoinPool
 import java.util.function.Function
 import javax.transaction.Transactional
 import javax.transaction.Transactional.TxType.NEVER
+import kotlin.random.Random.Default.nextLong
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -79,6 +82,20 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
 
         assertThat(findAndTagUnprocessedOrExpiredMessages(limit = 5, processorId = "worker-3")).hasSize(5)
         assertThat(count(where = "processing_started_by IS NULL")).isZero
+    }
+
+    @Test
+    fun `'findAndTagUnprocessedOrExpiredMessages' should select messages sorted by there occurrence in ascending order`() {
+        populateInboxXmlMessage(10) { Instant.ofEpochSecond(nextLong(from = 0, until = 1_665_254_241)) }
+
+        val actual: MutableList<Timestamp> = mutableListOf()
+        repeat(10) {
+            actual.addAll(
+                findAndTagUnprocessedOrExpiredMessages(limit = 1, processorId = "worker-0").map {
+                    it["occurred_at_utc"] as Timestamp
+                })
+        }
+        assertThat(actual).isSorted
     }
 
     @RepeatedTest(5)
@@ -147,18 +164,18 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
         assertThat(findAndTagUnprocessedOrExpiredMessages(limit = 5, processorId = "worker-0"))
             .hasSize(1)
             .map(Function { it.keys })
-            .containsExactly(setOf("id", "type", "data"))
+            .containsExactly(setOf("id", "occurred_at_utc", "type", "data"))
     }
 
     @Test
-    fun `'findAndTagUnprocessedOrExpiredMessages' should return value types 'UUID', 'String' and 'PqSQLXML'`() {
+    fun `'findAndTagUnprocessedOrExpiredMessages' should return value types 'UUID', 'Timestamp', 'String' and 'PqSQLXML'`() {
         populateInboxXmlMessage(1)
         assertThat(count()).isEqualTo(1)
 
         assertThat(findAndTagUnprocessedOrExpiredMessages(limit = 5, processorId = "worker-0"))
             .hasSize(1)
             .map(Function { it.values.map(Any::javaClass) })
-            .containsExactly(listOf(UUID::class.java, String::class.java, PgSQLXML::class.java) as List<Class<Any>>)
+            .containsExactly(listOf(UUID::class.java, Timestamp::class.java, String::class.java, PgSQLXML::class.java) as List<Class<Any>>)
     }
 
     @Test
@@ -191,6 +208,11 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
         assertThat(actual).hasSize(10)
     }
 
+    @BeforeEach
+    fun resetClock() {
+        clock.reset()
+    }
+
     private fun findAndTagUnprocessedOrExpiredMessages(
         limit: Int,
         processorId: String,
@@ -212,11 +234,11 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
                             WHERE
                                 processing_started_at_utc IS NULL OR
                                 processing_started_at_utc < :expiresAfter
-                            ORDER BY processing_started_at_utc
+                            ORDER BY occurred_at_utc
                             LIMIT :limit
                             FOR UPDATE SKIP LOCKED
                         )
-                    RETURNING id, type, data
+                    RETURNING id, occurred_at_utc, type, data
                 """.trimIndent(),
                 MapSqlParameterSource(
                     mapOf(
@@ -232,12 +254,11 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
 
     private fun deleteById(id: UUID) = repository.deleteById(id)
 
-    private fun populateInboxXmlMessage(count: Int) {
-        val now = Instant.now(clock)
+    private fun populateInboxXmlMessage(count: Int, now: () -> Instant = { Instant.now(clock) }) {
         repeat(count) {
             val entity = InboxXmlMessage(
                 id = UUID.randomUUID(),
-                occurredAtUtc = now,
+                occurredAtUtc = now(),
                 type = "NONE",
                 data = "<document/>".toDocument()
             )
@@ -261,6 +282,10 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
 
         operator fun plusAssign(duration: kotlin.time.Duration) {
             value = value.plusMillis(duration.inWholeMilliseconds)
+        }
+
+        fun reset() {
+            value = Instant.now()
         }
     }
 }
