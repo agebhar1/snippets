@@ -7,6 +7,10 @@ import io.github.agebhar1.snippets.SpringIntegrationInboundJmsEventualConsistenc
 import io.github.agebhar1.snippets.domain.InboxXmlMessage
 import io.github.agebhar1.snippets.domain.InboxXmlMessageRepository
 import io.github.agebhar1.snippets.repository.JdbcInboxXmlMessageRepository
+import jakarta.jms.ConnectionFactory
+import jakarta.jms.Message
+import jakarta.jms.MessageListener
+import jakarta.jms.TextMessage
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.Around
 import org.aspectj.lang.annotation.Aspect
@@ -48,10 +52,6 @@ import java.time.ZoneOffset.UTC
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.MILLISECONDS
-import javax.jms.ConnectionFactory
-import javax.jms.Message
-import javax.jms.MessageListener
-import javax.jms.TextMessage
 
 @Service
 class CustomJmsConsumer(

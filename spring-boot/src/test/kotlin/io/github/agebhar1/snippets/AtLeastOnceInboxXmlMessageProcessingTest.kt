@@ -27,6 +27,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
+import org.springframework.transaction.annotation.Propagation.NEVER
+import org.springframework.transaction.annotation.Transactional
 import java.sql.Timestamp
 import java.time.Clock
 import java.time.Instant
@@ -38,8 +40,6 @@ import java.util.UUID
 import java.util.concurrent.Callable
 import java.util.concurrent.ForkJoinPool
 import java.util.function.Function
-import javax.transaction.Transactional
-import javax.transaction.Transactional.TxType.NEVER
 import kotlin.random.Random.Default.nextLong
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -193,7 +193,7 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
 
     @RepeatedTest(5)
     @Sql(executionPhase = AFTER_TEST_METHOD, statements = ["DELETE FROM INBOX_XML_MESSAGE"])
-    @Transactional(NEVER)
+    @Transactional(propagation = NEVER)
     fun `should run with multiple threads`() {
         populateInboxXmlMessage(10)
         assertThat(count()).isEqualTo(10)
