@@ -24,7 +24,7 @@
         <spotless.version>2.27.2</spotless.version>
         <!-- dependency version(s) -->
         <testcontainers.version>1.17.6</testcontainers.version>
-        <junit-pioneer.version>1.7.1</junit-pioneer.version>
+        <junit-pioneer.version>1.9.0</junit-pioneer.version>
     </properties>
 
     <dependencies>
