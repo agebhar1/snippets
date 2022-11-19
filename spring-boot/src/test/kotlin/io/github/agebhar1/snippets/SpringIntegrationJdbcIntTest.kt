@@ -19,7 +19,7 @@ import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.jdbc.JdbcTestUtils.countRowsInTableWhere
 
 @AutoConfigureTestDatabase(replace = NONE)
-@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.5:///"])
+@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.6:///"])
 class SpringIntegrationJdbcIntTest(
     @Autowired val jdbcTemplate: JdbcTemplate,
     @Autowired val messagingTemplate: MessagingTemplate

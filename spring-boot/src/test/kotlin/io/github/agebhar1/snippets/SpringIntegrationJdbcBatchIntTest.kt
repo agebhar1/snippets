@@ -21,7 +21,7 @@ import org.springframework.test.jdbc.JdbcTestUtils.countRowsInTableWhere
 import java.util.UUID.randomUUID
 
 @AutoConfigureTestDatabase(replace = NONE)
-@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.5:///"])
+@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.6:///"])
 class SpringIntegrationJdbcBatchIntTest(
     @Autowired val jdbcTemplate: JdbcTemplate,
     @Autowired val messagingTemplate: MessagingTemplate

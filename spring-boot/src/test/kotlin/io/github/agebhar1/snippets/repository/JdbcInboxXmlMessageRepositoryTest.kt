@@ -18,7 +18,7 @@ import java.util.UUID
 
 @AutoConfigureTestDatabase(replace = NONE)
 @Import(JdbcInboxXmlMessageRepository::class, Jdbc4SqlXmlHandler::class)
-@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.5:///"])
+@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.6:///"])
 class JdbcInboxXmlMessageRepositoryTest(
     @Autowired private val jdbcTemplate: NamedParameterJdbcTemplate,
     @Autowired private val repository: JdbcInboxXmlMessageRepository
