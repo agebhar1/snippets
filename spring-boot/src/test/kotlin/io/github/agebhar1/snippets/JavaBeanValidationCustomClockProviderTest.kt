@@ -1,6 +1,5 @@
 package io.github.agebhar1.snippets
 
-import jakarta.validation.ClockProvider
 import jakarta.validation.Validator
 import jakarta.validation.constraints.Future
 import jakarta.validation.constraints.Past
@@ -9,10 +8,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junitpioneer.jupiter.DefaultLocale
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration
+import org.springframework.boot.autoconfigure.validation.ValidationConfigurationCustomizer
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -20,6 +21,7 @@ import java.time.Month.MARCH
 import java.time.ZoneOffset.UTC
 
 @ExtendWith(SpringExtension::class)
+@Import(ValidationAutoConfiguration::class)
 class JavaBeanValidationCustomClockProviderTest(@Autowired private val validator: Validator) {
     @Test
     fun `entity should be validated`() {
@@ -48,20 +50,8 @@ class JavaBeanValidationCustomClockProviderTest(@Autowired private val validator
     @TestConfiguration(proxyBeanMethods = false)
     class Configuration {
         @Bean
-        fun customizedValidator() =
-            object : LocalValidatorFactoryBean() {
-                // from org.springframework.validation.beanvalidation.LocalValidatorFactoryBean:
-                //
-                // Bean Validation 2.0: currently not implemented here since it would imply
-                // a hard dependency on the new javax.validation.ClockProvider interface.
-                // To be resolved once Spring Framework requires Bean Validation 2.0+.
-                // Obtain the native ValidatorFactory through unwrap(ValidatorFactory.class)
-                // instead which will fully support a getClockProvider() call as well.
-                override fun getClockProvider(): ClockProvider = TODO("not used")
-
-                override fun postProcessConfiguration(configuration: jakarta.validation.Configuration<*>) {
-                    configuration.clockProvider { Clock.fixed(Instant.parse("2022-03-12T19:00:00Z"), UTC) }
-                }
-            }
+        fun validationCustomizer() = ValidationConfigurationCustomizer {
+            it.clockProvider { Clock.fixed(Instant.parse("2022-03-12T19:00:00Z"), UTC) }
+        }
     }
 }
