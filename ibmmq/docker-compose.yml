@@ -1,0 +1,20 @@
+version: '3'
+services:
+  pg:
+    image: postgres:15.1
+    environment:
+      - POSTGRES_PASSWORD=passw0rd
+    ports:
+      - "5432:5432"
+    command:
+      - --max_prepared_transactions=100
+
+  mq:
+    image: icr.io/ibm-messaging/mq:9.3.1.0-r2
+    environment:
+      - LICENSE=accept
+      - MQ_APP_PASSWORD=passw0rd
+      - MQ_QMGR_NAME=QM1
+    ports:
+      - "1414:1414"
+      - "9443:9443"
