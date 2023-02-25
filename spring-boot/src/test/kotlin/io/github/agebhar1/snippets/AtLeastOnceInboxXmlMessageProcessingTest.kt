@@ -50,7 +50,7 @@ import kotlin.time.Duration.Companion.seconds
     Jdbc4SqlXmlHandler::class,
     ModifiableFixedUTCClock::class
 )
-@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.6:///"])
+@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:15.2:///"])
 class AtLeastOnceInboxXmlMessageProcessingTest(
     @Autowired private val clock: ModifiableFixedUTCClock,
     @Autowired private val jdbcTemplate: NamedParameterJdbcTemplate,

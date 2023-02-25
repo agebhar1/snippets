@@ -65,7 +65,7 @@ class JustAService(
 @AutoConfigureTestDatabase(replace = NONE)
 @DirtiesContext
 @Import(value = [JdbcInboxXmlMessageRepository::class, JustAService::class])
-@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.6:///"])
+@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:15.2:///"])
 @Sql(
     executionPhase = AFTER_TEST_METHOD,
     statements = ["DELETE FROM INBOX_XML_MESSAGE WHERE id = '4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9'"])

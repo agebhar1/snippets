@@ -12,7 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 import javax.sql.DataSource
 
 @AutoConfigureTestDatabase(replace = NONE)
-@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:14.6:///"])
+@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:15.2:///"])
 class PostgreSQLContainerIntTest {
     @Test
     fun `JDBC template is not null`(@Autowired jdbcTemplate: JdbcTemplate) {

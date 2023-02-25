@@ -117,7 +117,7 @@ class CustomJmsConsumer(
             JdbcInboxXmlMessageRepository::class,
             TransactionTemplateInterceptorAdvice::class,
         ])
-@SpringBootTest(properties = ["spring.artemis.embedded.queues=inbound.queue", "spring.datasource.url=jdbc:tc:postgresql:14.6:///"])
+@SpringBootTest(properties = ["spring.artemis.embedded.queues=inbound.queue", "spring.datasource.url=jdbc:tc:postgresql:15.2:///"])
 @Sql(
     executionPhase = AFTER_TEST_METHOD,
     statements =
