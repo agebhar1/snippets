@@ -19,7 +19,7 @@
 
     <properties>
         <!-- plugin version(s) -->
-        <diktat.version>1.2.4.2</diktat.version>
+        <diktat.version>1.2.5</diktat.version>
         <spotless.version>2.35.0</spotless.version>
         <!-- dependency version(s) -->
         <testcontainers.version>1.17.6</testcontainers.version>
