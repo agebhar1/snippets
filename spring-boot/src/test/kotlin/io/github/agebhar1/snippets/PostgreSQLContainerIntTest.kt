@@ -5,14 +5,11 @@ package io.github.agebhar1.snippets
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.jdbc.core.JdbcTemplate
 import javax.sql.DataSource
 
-@AutoConfigureTestDatabase(replace = NONE)
-@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:15.2:///"])
+@JdbcTest
 class PostgreSQLContainerIntTest {
     @Test
     fun `JDBC template is not null`(@Autowired jdbcTemplate: JdbcTemplate) {

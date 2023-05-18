@@ -3,8 +3,6 @@ package io.github.agebhar1.snippets
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -17,11 +15,9 @@ import org.springframework.integration.support.MessageBuilder
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.jdbc.JdbcTestUtils.countRowsInTableWhere
-
 import java.util.UUID.randomUUID
 
-@AutoConfigureTestDatabase(replace = NONE)
-@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:15.2:///"])
+@JdbcTest
 class SpringIntegrationJdbcBatchIntTest(
     @Autowired val jdbcTemplate: JdbcTemplate,
     @Autowired val messagingTemplate: MessagingTemplate

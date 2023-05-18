@@ -2,23 +2,18 @@ package io.github.agebhar1.snippets.repository
 
 import io.github.agebhar1.snippets.domain.InboxXmlMessage
 import io.github.agebhar1.snippets.toDocument
-
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
-
 import java.time.Instant
 import java.util.UUID
 
-@AutoConfigureTestDatabase(replace = NONE)
 @Import(JdbcInboxXmlMessageRepository::class, Jdbc4SqlXmlHandler::class)
-@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:15.2:///"])
+@JdbcTest
 class JdbcInboxXmlMessageRepositoryTest(
     @Autowired private val jdbcTemplate: NamedParameterJdbcTemplate,
     @Autowired private val repository: JdbcInboxXmlMessageRepository

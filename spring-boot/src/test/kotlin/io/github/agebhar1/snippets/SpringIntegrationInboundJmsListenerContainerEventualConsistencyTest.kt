@@ -19,8 +19,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -108,7 +106,6 @@ class CustomJmsConsumer(
     }
 }
 
-@AutoConfigureTestDatabase(replace = NONE)
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 @Import(
     value =
@@ -117,7 +114,7 @@ class CustomJmsConsumer(
             JdbcInboxXmlMessageRepository::class,
             TransactionTemplateInterceptorAdvice::class,
         ])
-@SpringBootTest(properties = ["spring.artemis.embedded.queues=inbound.queue", "spring.datasource.url=jdbc:tc:postgresql:15.2:///"])
+@SpringBootTest(properties = ["spring.artemis.embedded.queues=inbound.queue"])
 @Sql(
     executionPhase = AFTER_TEST_METHOD,
     statements =

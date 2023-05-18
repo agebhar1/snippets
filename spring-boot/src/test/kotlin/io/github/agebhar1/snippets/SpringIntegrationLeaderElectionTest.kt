@@ -6,7 +6,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -26,8 +25,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.sql.DataSource
 
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:15.2:///"])
+@JdbcTest
 class SpringIntegrationLeaderElectionTest(
     @Autowired val leaderInitiator: LockRegistryLeaderInitiator,
     @Autowired val lockRegistry: LockRegistry,

@@ -3,13 +3,10 @@ package io.github.agebhar1.snippets
 import io.github.agebhar1.snippets.domain.InboxXmlMessage
 import io.github.agebhar1.snippets.domain.InboxXmlMessageRepository
 import io.github.agebhar1.snippets.repository.JdbcInboxXmlMessageRepository
-
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -33,8 +30,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.util.IdGenerator
 import org.w3c.dom.Document
-
-import java.lang.IllegalStateException
 import java.time.Clock
 import java.time.Clock.fixed
 import java.time.Instant
@@ -62,10 +57,9 @@ class JustAService(
     }
 }
 
-@AutoConfigureTestDatabase(replace = NONE)
 @DirtiesContext
 @Import(value = [JdbcInboxXmlMessageRepository::class, JustAService::class])
-@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:15.2:///"])
+@JdbcTest
 @Sql(
     executionPhase = AFTER_TEST_METHOD,
     statements = ["DELETE FROM INBOX_XML_MESSAGE WHERE id = '4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9'"])
