@@ -9,7 +9,8 @@ jobs:
       matrix:
         javaVersion: [ "17" ]
         javaDistribution: [ "temurin", "zulu" ]
-    name: Java ${{ matrix.javaVersion }}-${{ matrix.javaDistribution }}
+        pgDockerTag: [ "15.3", "14.8", "13.11", "12.15", "11.20-bullseye" ]
+    name: Java ${{ matrix.javaVersion }}-${{ matrix.javaDistribution }} w/ PostgreSQL ${{ matrix.pgDockerTag }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
@@ -22,7 +23,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - run: mvn test --no-transfer-progress --file spring-boot/pom.xml
+      - run: mvn test --no-transfer-progress --file spring-boot/pom.xml -DargLine="-Dspring.datasource.url=jdbc:tc:postgresql:${{ matrix.pgDockerTag }}:///"
   diKTat:
     runs-on: ubuntu-22.04
     steps:
