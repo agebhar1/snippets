@@ -5,7 +5,6 @@ package io.github.agebhar1.snippets
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -20,16 +19,19 @@ import org.springframework.integration.leader.event.OnGrantedEvent
 import org.springframework.integration.leader.event.OnRevokedEvent
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator
 import org.springframework.integration.support.locks.LockRegistry
+import org.springframework.test.context.TestConstructor
+import org.springframework.test.context.TestConstructor.AutowireMode.ALL
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.sql.DataSource
 
 @JdbcTest
+@TestConstructor(autowireMode = ALL)
 class SpringIntegrationLeaderElectionTest(
-    @Autowired val leaderInitiator: LockRegistryLeaderInitiator,
-    @Autowired val lockRegistry: LockRegistry,
-    @Autowired val singleResource: SingleResource
+    val leaderInitiator: LockRegistryLeaderInitiator,
+    val lockRegistry: LockRegistry,
+    val singleResource: SingleResource
 ) {
     /*
         http://presos.dsyer.com/decks/locks-and-leaders.html

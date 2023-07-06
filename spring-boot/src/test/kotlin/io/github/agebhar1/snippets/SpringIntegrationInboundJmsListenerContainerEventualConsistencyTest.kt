@@ -18,7 +18,6 @@ import org.aspectj.lang.annotation.Pointcut
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -34,6 +33,8 @@ import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
+import org.springframework.test.context.TestConstructor
+import org.springframework.test.context.TestConstructor.AutowireMode.ALL
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
 import org.springframework.transaction.annotation.Propagation.NEVER
@@ -119,13 +120,14 @@ class CustomJmsConsumer(
     executionPhase = AFTER_TEST_METHOD,
     statements =
         ["DELETE FROM INBOX_XML_MESSAGE WHERE id = '4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9'"])
+@TestConstructor(autowireMode = ALL)
 @Transactional(propagation = NEVER)
 class SpringIntegrationInboundJmsEventualConsistencyTest(
-    @Autowired private val consumer: CustomJmsConsumer,
-    @Autowired private val repositoryInterceptor: InboxXmlMessageRepositoryInterceptor,
-    @Autowired private val jdbcTemplate: JdbcTemplate,
-    @Autowired private val jmsTemplate: JmsTemplate,
-    @Autowired private val txTemplateInterceptor: TransactionTemplateInterceptor
+    private val consumer: CustomJmsConsumer,
+    private val repositoryInterceptor: InboxXmlMessageRepositoryInterceptor,
+    private val jdbcTemplate: JdbcTemplate,
+    private val jmsTemplate: JmsTemplate,
+    private val txTemplateInterceptor: TransactionTemplateInterceptor
 ) {
     @BeforeEach
     fun beforeEach() {

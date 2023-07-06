@@ -2,7 +2,6 @@ package io.github.agebhar1.snippets
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -13,13 +12,16 @@ import org.springframework.integration.dsl.integrationFlow
 import org.springframework.integration.jdbc.JdbcMessageHandler
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.test.context.TestConstructor
+import org.springframework.test.context.TestConstructor.AutowireMode.ALL
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.jdbc.JdbcTestUtils.countRowsInTableWhere
 
 @JdbcTest
+@TestConstructor(autowireMode = ALL)
 class SpringIntegrationJdbcIntTest(
-    @Autowired val jdbcTemplate: JdbcTemplate,
-    @Autowired val messagingTemplate: MessagingTemplate
+    val jdbcTemplate: JdbcTemplate,
+    val messagingTemplate: MessagingTemplate
 ) {
     @Test
     @Sql("/sql/spring-integration-jdbc-int-test.sql")

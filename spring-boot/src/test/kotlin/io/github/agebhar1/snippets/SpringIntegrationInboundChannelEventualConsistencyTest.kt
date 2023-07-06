@@ -6,7 +6,6 @@ import io.github.agebhar1.snippets.repository.JdbcInboxXmlMessageRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -22,6 +21,8 @@ import org.springframework.messaging.MessageHeaders
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Service
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.TestConstructor
+import org.springframework.test.context.TestConstructor.AutowireMode.ALL
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
 import org.springframework.transaction.annotation.Propagation.MANDATORY
@@ -63,11 +64,12 @@ class JustAService(
 @Sql(
     executionPhase = AFTER_TEST_METHOD,
     statements = ["DELETE FROM INBOX_XML_MESSAGE WHERE id = '4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9'"])
+@TestConstructor(autowireMode = ALL)
 @Transactional(propagation = NEVER)
 class SpringIntegrationInboundChannelEventualConsistencyTest(
-    @Autowired val txTemplate: TransactionTemplate,
-    @Autowired val jdbcTemplate: JdbcTemplate,
-    @Autowired private val messagingTemplate: MessagingTemplate
+    val txTemplate: TransactionTemplate,
+    val jdbcTemplate: JdbcTemplate,
+    private val messagingTemplate: MessagingTemplate
 ) {
     @Test
     fun `should save message from channel to inbox database table and proceed normally`() {

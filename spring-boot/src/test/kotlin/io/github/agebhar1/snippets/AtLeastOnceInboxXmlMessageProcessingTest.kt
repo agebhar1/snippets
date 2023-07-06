@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.postgresql.jdbc.PgSQLXML
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
@@ -25,6 +24,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.jdbc.support.GeneratedKeyHolder
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
+import org.springframework.test.context.TestConstructor
+import org.springframework.test.context.TestConstructor.AutowireMode.ALL
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
 import org.springframework.transaction.annotation.Propagation.NEVER
@@ -51,10 +52,11 @@ import kotlin.time.Duration.Companion.seconds
     ModifiableFixedUTCClock::class
 )
 @JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:15.2:///"])
+@TestConstructor(autowireMode = ALL)
 class AtLeastOnceInboxXmlMessageProcessingTest(
-    @Autowired private val clock: ModifiableFixedUTCClock,
-    @Autowired private val jdbcTemplate: NamedParameterJdbcTemplate,
-    @Autowired private val repository: JdbcInboxXmlMessageRepository
+    private val clock: ModifiableFixedUTCClock,
+    private val jdbcTemplate: NamedParameterJdbcTemplate,
+    private val repository: JdbcInboxXmlMessageRepository
 ) {
     @ParameterizedTest
     @ValueSource(ints = [1, 5, 10])

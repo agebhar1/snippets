@@ -2,7 +2,6 @@ package io.github.agebhar1.snippets
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -16,6 +15,8 @@ import org.springframework.integration.support.MessageBuilder
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
 import org.springframework.jdbc.support.xml.SqlXmlHandler
+import org.springframework.test.context.TestConstructor
+import org.springframework.test.context.TestConstructor.AutowireMode.ALL
 import org.w3c.dom.Document
 import java.time.Instant
 import java.time.LocalDateTime
@@ -24,9 +25,10 @@ import java.util.UUID
 
 @Import(Jdbc4SqlXmlHandler::class)
 @JdbcTest
+@TestConstructor(autowireMode = ALL)
 class SpringIntegrationJdbcXmlIntTest(
-    @Autowired val jdbcTemplate: JdbcTemplate,
-    @Autowired val messagingTemplate: MessagingTemplate
+    val jdbcTemplate: JdbcTemplate,
+    val messagingTemplate: MessagingTemplate
 ) {
     @Test
     fun `message with XML payload should be present in database table`() {

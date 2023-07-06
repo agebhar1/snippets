@@ -4,19 +4,21 @@ import io.github.agebhar1.snippets.domain.InboxXmlMessage
 import io.github.agebhar1.snippets.toDocument
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
+import org.springframework.test.context.TestConstructor
+import org.springframework.test.context.TestConstructor.AutowireMode.ALL
 import java.time.Instant
 import java.util.UUID
 
 @Import(JdbcInboxXmlMessageRepository::class, Jdbc4SqlXmlHandler::class)
 @JdbcTest
+@TestConstructor(autowireMode = ALL)
 class JdbcInboxXmlMessageRepositoryTest(
-    @Autowired private val jdbcTemplate: NamedParameterJdbcTemplate,
-    @Autowired private val repository: JdbcInboxXmlMessageRepository
+    private val jdbcTemplate: NamedParameterJdbcTemplate,
+    private val repository: JdbcInboxXmlMessageRepository
 ) {
     @Test
     fun `should save entity`() {
