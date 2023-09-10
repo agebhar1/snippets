@@ -44,13 +44,13 @@ class PlanerTestCase(unittest.TestCase):
     def test_no_action(self):
         planner = Planner(state=DAG1, target=DAG1, modified=[])
 
-        self.assertEqual([], planner.apply())
+        self.assertEqual(([], {}), planner.apply())
 
     def test_apply_DAG1_modified_multiple(self):
         planner = Planner(state=DAG1, target=DAG1, modified=["b", "d"])
 
         self.assertEqual(
-            ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
+            (["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"], {}),
             planner.apply(),
         )
 
@@ -58,19 +58,22 @@ class PlanerTestCase(unittest.TestCase):
         planner = Planner(state=DAG1, target=DAG1, modified=["e"])
 
         self.assertEqual(
-            ["-a", "-b", "-c", "-d", "-e", "+e", "+d", "+c", "+b", "+a"],
+            (["-a", "-b", "-c", "-d", "-e", "+e", "+d", "+c", "+b", "+a"], {}),
             planner.apply(),
         )
 
     def test_apply_DAG3_modified_single(self):
         planner = Planner(state=DAG3, target=DAG3, modified=["d"])
 
-        self.assertEqual(["-d", "+d"], planner.apply())
+        self.assertEqual((["-d", "+d"], {}), planner.apply())
 
     def test_apply_DAG3_modified_root(self):
         planner = Planner(state=DAG3, target=DAG3, modified=["a"])
 
-        self.assertEqual(["-d", "-b", "-a", "+a", "+b", "+d"], planner.apply())
+        self.assertEqual(
+            (["-d", "-b", "-a", "+a", "+b", "+d"], {}),
+            planner.apply(),
+        )
 
     def test_apply_add_to_empty(self):
         planner = Planner(
@@ -78,7 +81,10 @@ class PlanerTestCase(unittest.TestCase):
             target=DirectAcyclicGraph(g={"a": dependency("b"), "b": []}),
         )
 
-        self.assertEqual(["+b", "+a"], planner.apply())
+        self.assertEqual(
+            (["+b", "+a"], {}),
+            planner.apply(),
+        )
 
     def test_apply_add_to_existing(self):
         planner = Planner(
@@ -88,7 +94,7 @@ class PlanerTestCase(unittest.TestCase):
             ),
         )
 
-        self.assertEqual(["+c"], planner.apply())
+        self.assertEqual((["+c"], {}), planner.apply())
 
     def test_apply_remove_all(self):
         planner = Planner(
@@ -96,12 +102,18 @@ class PlanerTestCase(unittest.TestCase):
             target=DirectAcyclicGraph(g={}),
         )
 
-        self.assertEqual(["-a", "-b"], planner.apply())
+        self.assertEqual(
+            (["-a", "-b"], {}),
+            planner.apply(),
+        )
 
     def test_apply_DAG3_remove_all(self):
         planner = Planner(state=DAG3, target=DirectAcyclicGraph(g={}))
 
-        self.assertEqual(["-d", "-c", "-b", "-a"], planner.apply())
+        self.assertEqual(
+            (["-d", "-c", "-b", "-a"], {}),
+            planner.apply(),
+        )
 
     def test_add_and_delete(self):
         planner = Planner(
@@ -109,7 +121,10 @@ class PlanerTestCase(unittest.TestCase):
             target=DirectAcyclicGraph(g={"c": dependency("a"), "a": []}),
         )
 
-        self.assertEqual(["-b", "+c"], planner.apply())
+        self.assertEqual(
+            (["-b", "+c"], {}),
+            planner.apply(),
+        )
 
     def test_modified_but_delete(self):
         planner = Planner(
@@ -120,13 +135,25 @@ class PlanerTestCase(unittest.TestCase):
             modified=["c"],
         )
 
-        self.assertEqual(["-c"], planner.apply())
+        self.assertEqual((["-c"], {}), planner.apply())
 
     def test_apply_delete_DAG2_temporarily(self):
         planner = Planner(state=DAG2, target=DAG2, selected=["-c1d1"])
 
         self.assertEqual(
-            ["-a", "-b", "-d", "-d1", "-c", "-c1", "-c1d1"], planner.apply()
+            (
+                ["-a", "-b", "-d", "-d1", "-c", "-c1", "-c1d1"],
+                {
+                    "a": {"child": {"c1d1"}},
+                    "b": {"child": {"c1d1"}},
+                    "c": {"child": {"c1d1"}},
+                    "c1": {"child": {"c1d1"}},
+                    "c1d1": {"selected": True},
+                    "d": {"child": {"c1d1"}},
+                    "d1": {"child": {"c1d1"}},
+                },
+            ),
+            planner.apply(),
         )
 
     def test_apply_delete_DAG2_temporarily_with_target_changes(self):
@@ -148,7 +175,19 @@ class PlanerTestCase(unittest.TestCase):
         )
 
         self.assertEqual(
-            ["-a", "-b", "-d", "-d1", "-c", "-c1", "-c1d1"], planner.apply()
+            (
+                ["-a", "-b", "-d", "-d1", "-c", "-c1", "-c1d1"],
+                {
+                    "a": {"child": {"c1d1"}},
+                    "b": {"child": {"c1d1"}},
+                    "c": {"child": {"c1d1"}},
+                    "c1": {"child": {"c1d1"}},
+                    "c1d1": {"selected": True},
+                    "d": {"child": {"c1d1"}},
+                    "d1": {"child": {"c1d1"}},
+                },
+            ),
+            planner.apply(),
         )
 
     def test_apply_delete_roots_DAG2_temporarily(self):
@@ -156,7 +195,21 @@ class PlanerTestCase(unittest.TestCase):
 
         actual = planner.apply()
         self.assertEqual(
-            ["-a", "-b", "-d", "-d2", "-d1", "-c", "-c2", "-c2d2", "-c1", "-c1d1"],
+            (
+                ["-a", "-b", "-d", "-d2", "-d1", "-c", "-c2", "-c2d2", "-c1", "-c1d1"],
+                {
+                    "a": {"child": {"c1d1", "c2d2"}},
+                    "b": {"child": {"c1d1", "c2d2"}},
+                    "c": {"child": {"c1d1", "c2d2"}},
+                    "c1": {"child": {"c1d1"}},
+                    "c1d1": {"selected": True},
+                    "c2": {"child": {"c2d2"}},
+                    "c2d2": {"selected": True},
+                    "d": {"child": {"c1d1", "c2d2"}},
+                    "d1": {"child": {"c1d1"}},
+                    "d2": {"child": {"c2d2"}},
+                },
+            ),
             actual,
         )
         self.assertNotIn("e", actual)
@@ -170,7 +223,16 @@ class PlanerTestCase(unittest.TestCase):
             modified=["b"],
             selected=["-c"],
         )
-        self.assertEqual(["-b", "+b", "-c"], planner.apply())
+        self.assertEqual(
+            (
+                ["-b", "+b", "-c"],
+                {
+                    "b": {"modified": "True", "parent": {"c"}},
+                    "c": {"selected": True},
+                },
+            ),
+            planner.apply(),
+        )
 
     def test_apply_delete_with_one_modified_two_TOOL_edge_in_chain(self):
         planner = Planner(
@@ -183,7 +245,16 @@ class PlanerTestCase(unittest.TestCase):
             modified=["b2"],
             selected=["-c"],
         )
-        self.assertEqual(["-b2", "+b2", "-c"], planner.apply())
+        self.assertEqual(
+            (
+                ["-b2", "+b2", "-c"],
+                {
+                    "b2": {"modified": "True", "parent": {"c"}},
+                    "c": {"selected": True},
+                },
+            ),
+            planner.apply(),
+        )
 
     def test_apply_delete_with_two_modified_two_TOOL_edge_in_chain(self):
         planner = Planner(
@@ -196,7 +267,17 @@ class PlanerTestCase(unittest.TestCase):
             modified=["b1", "b2"],
             selected=["-c"],
         )
-        self.assertEqual(["-b2", "-b1", "+b1", "+b2", "-c"], planner.apply())
+        self.assertEqual(
+            (
+                ["-b2", "-b1", "+b1", "+b2", "-c"],
+                {
+                    "b1": {"modified": "True", "parent": {"c"}},
+                    "b2": {"modified": "True", "parent": {"c"}},
+                    "c": {"selected": True},
+                },
+            ),
+            planner.apply(),
+        )
 
     def test_apply_delete_with_one_modified_two_TOOL_edge_in_chain_skip(self):
         planner = Planner(
@@ -209,18 +290,24 @@ class PlanerTestCase(unittest.TestCase):
             modified=["b1"],
             selected=["-c"],
         )
-        self.assertEqual(["-c"], planner.apply())
+        self.assertEqual((["-c"], {"c": {"selected": True}}), planner.apply())
 
     def test_no_action_apply_selected(self):
         planner = Planner(state=DAG1, target=DAG1, modified=[], selected=["c"])
 
-        self.assertEqual([], planner.apply())
+        self.assertEqual(([], {"c": {"selected": True}}), planner.apply())
 
     def test_apply_DAG1_modified_multiple_single_selected(self):
         planner = Planner(state=DAG1, target=DAG1, modified=["b", "d"], selected=["b"])
 
         self.assertEqual(
-            ["-a", "-b", "+b", "+a"],
+            (
+                ["-a", "-b", "+b", "+a"],
+                {
+                    "a": {"child": {"b"}, "modified": True},
+                    "b": {"selected": True},
+                },
+            ),
             planner.apply(),
         )
 
@@ -230,7 +317,13 @@ class PlanerTestCase(unittest.TestCase):
         )
 
         self.assertEqual(
-            ["+b", "+c"],
+            (
+                ["+b", "+c"],
+                {
+                    "b": {"parent": {"c"}},
+                    "c": {"selected": True},
+                },
+            ),
             planner.apply(),
         )
 
@@ -243,7 +336,14 @@ class PlanerTestCase(unittest.TestCase):
         )
 
         self.assertEqual(
-            ["-a", "+a", "+b", "+c"],
+            (
+                ["-a", "+a", "+b", "+c"],
+                {
+                    "a": {"modified": True, "parent": {"c"}},
+                    "b": {"parent": {"c"}},
+                    "c": {"selected": True},
+                },
+            ),
             planner.apply(),
         )
 
@@ -258,7 +358,13 @@ class PlanerTestCase(unittest.TestCase):
         )
 
         self.assertEqual(
-            ["-b", "+b", "+c"],
+            (
+                ["-b", "+b", "+c"],
+                {
+                    "b": {"modified": True, "parent": {"c"}},
+                    "c": {"selected": True},
+                },
+            ),
             planner.apply(),
         )
 
@@ -279,6 +385,31 @@ class PlanerTestCase(unittest.TestCase):
         )
 
         self.assertEqual(
-            ["+d", "+e"],
+            (
+                ["+d", "+e"],
+                {
+                    "d": {"parent": {"e"}},
+                    "e": {"selected": True},
+                },
+            ),
+            planner.apply(),
+        )
+
+    def test_apply_selected_TOOL_edge_modified(self):
+        planner = Planner(
+            state=DirectAcyclicGraph(g={"a": tool("b"), "b": []}),
+            target=DirectAcyclicGraph(g={"a": tool("b"), "b": []}),
+            modified=["b"],
+            selected=["-a"],
+        )
+
+        self.assertEqual(
+            (
+                ["-b", "+b", "-a"],
+                {
+                    "a": {"selected": True},
+                    "b": {"modified": "True", "parent": {"a"}},
+                },
+            ),
             planner.apply(),
         )

@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple, List
 
 from direct_acyclic_graph import DirectAcyclicGraph, EdgeType
 
@@ -21,7 +21,7 @@ class Planner:
         self._modified = modified or []
         self._selected = selected
 
-    def apply(self) -> list[str]:
+    def apply(self) -> tuple[list[str], dict[str, bool | set[str]]]:
         nodes_state = self._state.nodes()
         nodes_target = self._target.nodes()
 
@@ -29,6 +29,8 @@ class Planner:
         nodes_delete = set()
         nodes_with_edge_type_tool_delete = set()
         modified_transitive = set()
+
+        node_action_cause = {node: dict() for node in nodes_state.union(nodes_target)}
 
         if self._selected == "*":
             nodes_add = {node for node in nodes_target - nodes_state}
@@ -46,6 +48,7 @@ class Planner:
                 if item.startswith("-"):
                     # delete case
                     node = str(item[1:])
+                    node_action_cause[node] |= {"selected": True}
                     has_parent_with_edge_type_tool = len(self._state.parents(node)) > 0
                     if has_parent_with_edge_type_tool:
                         parents_edge_type_tool_transitive = (
@@ -58,47 +61,93 @@ class Planner:
                         modified_transitive = modified_transitive.union(
                             parents_edge_type_tool_transitive
                         )
+                        for reachable in parents_edge_type_tool_transitive:
+                            if reachable != node:
+                                node_action_cause[reachable] |= {"modified": "True"}
+                                if "parent" in node_action_cause[reachable]:
+                                    node_action_cause[reachable]["parent"].add(node)
+                                else:
+                                    node_action_cause[reachable] |= {"parent": {node}}
+
+                        childs_transitive = self._state.childs_transitive(
+                            node,
+                            accept=lambda adjacent: adjacent[1] != EdgeType.TOOL,
+                        ).union({node})
+
                         nodes_with_edge_type_tool_delete = (
-                            nodes_with_edge_type_tool_delete.union(
-                                self._state.childs_transitive(
-                                    node,
-                                    accept=lambda adjacent: adjacent[1]
-                                    != EdgeType.TOOL,
-                                ).union({node})
-                            )
+                            nodes_with_edge_type_tool_delete.union(childs_transitive)
                         )
+
+                        for reachable in childs_transitive:
+                            if reachable != node:
+                                if "child" in node_action_cause[reachable]:
+                                    node_action_cause[reachable]["child"].add(node)
+                                else:
+                                    node_action_cause[reachable] |= {"child": {node}}
                     else:
-                        nodes_delete = nodes_delete.union(
-                            # use state (graph) instead of target, because target will be mostly ignored in this mode
-                            self._state.childs_transitive(
-                                node,
-                                accept=lambda adjacent: adjacent[1] != EdgeType.TOOL,
-                            ).union({node})
-                        )
+                        # use state (graph) instead of target, because target will be mostly ignored in this mode
+                        childs_transitive = self._state.childs_transitive(
+                            node,
+                            accept=lambda adjacent: adjacent[1] != EdgeType.TOOL,
+                        ).union({node})
+
+                        nodes_delete = nodes_delete.union(childs_transitive)
+                        for reachable in childs_transitive:
+                            if reachable != node:
+                                if "child" in node_action_cause[reachable]:
+                                    node_action_cause[reachable]["child"].add(node)
+                                else:
+                                    node_action_cause[reachable] |= {"child": {node}}
 
                 else:
                     node = item
+                    node_action_cause[node] |= {"selected": True}
                     if node in self._modified:  # and node in node_states <- implicit
+                        childs_transitive = self._state.childs_transitive(
+                            node,
+                            accept=lambda adjacent: adjacent[1] != EdgeType.TOOL,
+                        ).union({node})
+
                         modified_transitive = modified_transitive.union(
-                            self._state.childs_transitive(
-                                node,
-                                accept=lambda adjacent: adjacent[1] != EdgeType.TOOL,
-                            ).union({node})
+                            childs_transitive
                         )
+                        for reachable in childs_transitive:
+                            if reachable != node:
+                                node_action_cause[reachable] |= {"modified": True}
+                                if "child" in node_action_cause[reachable]:
+                                    node_action_cause[reachable]["child"].add(node)
+                                else:
+                                    node_action_cause[reachable] |= {"child": {node}}
+
                     elif node in nodes_target:
                         node_with_parents_transitive = self._target.parents_transitive(
                             node
                         ).union({node})
                         nodes_add = node_with_parents_transitive.difference(nodes_state)
+                        for reachable in nodes_add:
+                            if reachable != node:
+                                if "parent" in node_action_cause[reachable]:
+                                    node_action_cause[reachable]["parent"].add(node)
+                                else:
+                                    node_action_cause[reachable] |= {"parent": {node}}
+
                         for node_add in nodes_add:
-                            modified_transitive = modified_transitive.union(
-                                self._target.parents_transitive(
-                                    node_add,
-                                    accept=lambda adjacent: (
-                                        adjacent[0] in self._modified
-                                    ),
-                                )
+                            parent_transitive = self._target.parents_transitive(
+                                node_add,
+                                accept=lambda adjacent: (adjacent[0] in self._modified),
                             )
+                            modified_transitive = modified_transitive.union(
+                                parent_transitive
+                            )
+                            for reachable in parent_transitive:
+                                if reachable != node:
+                                    node_action_cause[reachable] |= {"modified": True}
+                                    if "parent" in node_action_cause[reachable]:
+                                        node_action_cause[reachable]["parent"].add(node)
+                                    else:
+                                        node_action_cause[reachable] |= {
+                                            "parent": {node}
+                                        }
 
         node_action = {node: None for node in nodes_state.union(nodes_target)}
 
@@ -129,4 +178,6 @@ class Planner:
             if node_action[node] in ["delete"]:
                 operations.append(f"-{node}")
 
-        return operations
+        return operations, {
+            key: value for key, value in node_action_cause.items() if len(value) > 0
+        }
