@@ -42,7 +42,7 @@ DAG3 = DirectAcyclicGraph(
 
 class PlanerTestCase(unittest.TestCase):
     def test_no_action(self):
-        planner = Planner(state=DAG1, target=DAG1, modified=[])
+        planner = Planner(state=DAG1, target=DAG1)
 
         self.assertEqual(([], {}), planner.apply())
 
@@ -54,8 +54,42 @@ class PlanerTestCase(unittest.TestCase):
             planner.apply(),
         )
 
+    def test_apply_DAG1_unhealthy_multiple(self):
+        planner = Planner(state=DAG1, target=DAG1, unhealthy=["b", "d"])
+
+        self.assertEqual(
+            (["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"], {}),
+            planner.apply(),
+        )
+
+    def test_apply_DAG1_unhealthy_and_modified(self):
+        planner = Planner(
+            state=DAG1, target=DAG1, modified=["b", "d"], unhealthy=["b", "d"]
+        )
+
+        self.assertEqual(
+            (["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"], {}),
+            planner.apply(),
+        )
+
+    def test_apply_DAG1_unhealthy_or_modified(self):
+        planner = Planner(state=DAG1, target=DAG1, modified=["b"], unhealthy=["d"])
+
+        self.assertEqual(
+            (["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"], {}),
+            planner.apply(),
+        )
+
     def test_apply_DAG1_modified_root(self):
         planner = Planner(state=DAG1, target=DAG1, modified=["e"])
+
+        self.assertEqual(
+            (["-a", "-b", "-c", "-d", "-e", "+e", "+d", "+c", "+b", "+a"], {}),
+            planner.apply(),
+        )
+
+    def test_apply_DAG1_unhealthy_root(self):
+        planner = Planner(state=DAG1, target=DAG1, unhealthy=["e"])
 
         self.assertEqual(
             (["-a", "-b", "-c", "-d", "-e", "+e", "+d", "+c", "+b", "+a"], {}),
@@ -225,9 +259,28 @@ class PlanerTestCase(unittest.TestCase):
         )
         self.assertEqual(
             (
+                ["-c"],
+                {
+                    "c": {"selected": True},
+                },
+            ),
+            planner.apply(),
+        )
+
+    def test_apply_delete_with_unhealthy_one_TOOL_edge(self):
+        planner = Planner(
+            state=DirectAcyclicGraph(g={"a": [], "b": dependency("a"), "c": tool("b")}),
+            target=DirectAcyclicGraph(
+                g={"a": [], "b": dependency("a"), "c": tool("b")}
+            ),
+            unhealthy=["b"],
+            selected=["-c"],
+        )
+        self.assertEqual(
+            (
                 ["-b", "+b", "-c"],
                 {
-                    "b": {"modified": "True", "parent": {"c"}},
+                    "b": {"unhealthy": "True", "parent": {"c"}},
                     "c": {"selected": True},
                 },
             ),
@@ -247,9 +300,30 @@ class PlanerTestCase(unittest.TestCase):
         )
         self.assertEqual(
             (
+                ["-c"],
+                {
+                    "c": {"selected": True},
+                },
+            ),
+            planner.apply(),
+        )
+
+    def test_apply_delete_with_one_unhealthy_two_TOOL_edge_in_chain(self):
+        planner = Planner(
+            state=DirectAcyclicGraph(
+                g={"a": [], "b1": dependency("a"), "b2": tool("b1"), "c": tool("b2")}
+            ),
+            target=DirectAcyclicGraph(
+                g={"a": [], "b1": dependency("a"), "b2": tool("b1"), "c": tool("b2")}
+            ),
+            unhealthy=["b2"],
+            selected=["-c"],
+        )
+        self.assertEqual(
+            (
                 ["-b2", "+b2", "-c"],
                 {
-                    "b2": {"modified": "True", "parent": {"c"}},
+                    "b2": {"unhealthy": "True", "parent": {"c"}},
                     "c": {"selected": True},
                 },
             ),
@@ -269,10 +343,31 @@ class PlanerTestCase(unittest.TestCase):
         )
         self.assertEqual(
             (
+                ["-c"],
+                {
+                    "c": {"selected": True},
+                },
+            ),
+            planner.apply(),
+        )
+
+    def test_apply_delete_with_two_unhealthy_two_TOOL_edge_in_chain(self):
+        planner = Planner(
+            state=DirectAcyclicGraph(
+                g={"a": [], "b1": dependency("a"), "b2": tool("b1"), "c": tool("b2")}
+            ),
+            target=DirectAcyclicGraph(
+                g={"a": [], "b1": dependency("a"), "b2": tool("b1"), "c": tool("b2")}
+            ),
+            unhealthy=["b1", "b2"],
+            selected=["-c"],
+        )
+        self.assertEqual(
+            (
                 ["-b2", "-b1", "+b1", "+b2", "-c"],
                 {
-                    "b1": {"modified": "True", "parent": {"c"}},
-                    "b2": {"modified": "True", "parent": {"c"}},
+                    "b1": {"unhealthy": "True", "parent": {"c"}},
+                    "b2": {"unhealthy": "True", "parent": {"c"}},
                     "c": {"selected": True},
                 },
             ),
@@ -337,9 +432,28 @@ class PlanerTestCase(unittest.TestCase):
 
         self.assertEqual(
             (
+                ["+b", "+c"],
+                {
+                    "b": {"parent": {"c"}},
+                    "c": {"selected": True},
+                },
+            ),
+            planner.apply(),
+        )
+
+    def test_apply_DAG3_selected_target_unhealthy(self):
+        planner = Planner(
+            state=DirectAcyclicGraph(g={"a": dependency()}),
+            target=DAG3,
+            unhealthy=["a"],
+            selected=["c"],
+        )
+
+        self.assertEqual(
+            (
                 ["-a", "+a", "+b", "+c"],
                 {
-                    "a": {"modified": True, "parent": {"c"}},
+                    "a": {"unhealthy": True, "parent": {"c"}},
                     "b": {"parent": {"c"}},
                     "c": {"selected": True},
                 },
@@ -359,9 +473,29 @@ class PlanerTestCase(unittest.TestCase):
 
         self.assertEqual(
             (
+                ["+c"],
+                {
+                    "c": {"selected": True},
+                },
+            ),
+            planner.apply(),
+        )
+
+    def test_apply_DAG3_selected_target_unhealthy_one_TOOL_edge(self):
+        planner = Planner(
+            state=DirectAcyclicGraph(g={"a": [], "b": dependency("a")}),
+            target=DirectAcyclicGraph(
+                g={"a": [], "b": dependency("a"), "c": tool("b")}
+            ),
+            unhealthy=["b"],
+            selected=["c"],
+        )
+
+        self.assertEqual(
+            (
                 ["-b", "+b", "+c"],
                 {
-                    "b": {"modified": True, "parent": {"c"}},
+                    "b": {"unhealthy": True, "parent": {"c"}},
                     "c": {"selected": True},
                 },
             ),
@@ -405,10 +539,28 @@ class PlanerTestCase(unittest.TestCase):
 
         self.assertEqual(
             (
+                ["-a"],
+                {
+                    "a": {"selected": True},
+                },
+            ),
+            planner.apply(),
+        )
+
+    def test_apply_selected_TOOL_edge_unhealthy(self):
+        planner = Planner(
+            state=DirectAcyclicGraph(g={"a": tool("b"), "b": []}),
+            target=DirectAcyclicGraph(g={"a": tool("b"), "b": []}),
+            unhealthy=["b"],
+            selected=["-a"],
+        )
+
+        self.assertEqual(
+            (
                 ["-b", "+b", "-a"],
                 {
                     "a": {"selected": True},
-                    "b": {"modified": "True", "parent": {"a"}},
+                    "b": {"unhealthy": "True", "parent": {"a"}},
                 },
             ),
             planner.apply(),

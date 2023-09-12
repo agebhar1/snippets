@@ -7,6 +7,7 @@ class Planner:
     _state: DirectAcyclicGraph
     _target: DirectAcyclicGraph
     _modified: list[str]
+    _unhealthy: list[str]
     _selected: Union[str, list[str]] = "*"
 
     def __init__(
@@ -14,11 +15,13 @@ class Planner:
         state: DirectAcyclicGraph,
         target: DirectAcyclicGraph,
         modified: list[str] = None,  # TODO naming
+        unhealthy: list[str] = None,  # TODO naming
         selected: Union[str, list[str]] = "*",  # TODO naming
     ):
         self._state = state
         self._target = target
         self._modified = modified or []
+        self._unhealthy = unhealthy or []
         self._selected = selected
 
     def apply(self) -> tuple[list[str], dict[str, bool | set[str]]]:
@@ -29,6 +32,7 @@ class Planner:
         nodes_delete = set()
         nodes_with_edge_type_tool_delete = set()
         modified_transitive = set()
+        unhealthy_transitive = set()
 
         node_action_cause = {node: dict() for node in nodes_state.union(nodes_target)}
 
@@ -38,6 +42,12 @@ class Planner:
 
             for node in self._modified:
                 modified_transitive = modified_transitive.union(
+                    self._state.childs_transitive(
+                        node, accept=lambda adjacent: adjacent[1] != EdgeType.TOOL
+                    ).union({node})
+                )
+            for node in self._unhealthy:
+                unhealthy_transitive = unhealthy_transitive.union(
                     self._state.childs_transitive(
                         node, accept=lambda adjacent: adjacent[1] != EdgeType.TOOL
                     ).union({node})
@@ -55,15 +65,15 @@ class Planner:
                             self._state.parents_transitive(
                                 node,
                                 accept=lambda adjacent: adjacent[1] == EdgeType.TOOL
-                                and adjacent[0] in self._modified,
+                                and adjacent[0] in self._unhealthy,
                             )
                         )
-                        modified_transitive = modified_transitive.union(
+                        unhealthy_transitive = unhealthy_transitive.union(
                             parents_edge_type_tool_transitive
                         )
                         for reachable in parents_edge_type_tool_transitive:
                             if reachable != node:
-                                node_action_cause[reachable] |= {"modified": "True"}
+                                node_action_cause[reachable] |= {"unhealthy": "True"}
                                 if "parent" in node_action_cause[reachable]:
                                     node_action_cause[reachable]["parent"].add(node)
                                 else:
@@ -102,18 +112,32 @@ class Planner:
                 else:
                     node = item
                     node_action_cause[node] |= {"selected": True}
-                    if node in self._modified:  # and node in node_states <- implicit
+
+                    is_node_modified = node in self._modified
+                    is_node_unhealthy = node in self._unhealthy
+
+                    if (
+                        is_node_modified or is_node_unhealthy
+                    ):  # and node in node_states <- implicit
                         childs_transitive = self._state.childs_transitive(
                             node,
                             accept=lambda adjacent: adjacent[1] != EdgeType.TOOL,
                         ).union({node})
 
-                        modified_transitive = modified_transitive.union(
-                            childs_transitive
-                        )
+                        key = "modified"
+                        if is_node_modified:
+                            modified_transitive = modified_transitive.union(
+                                childs_transitive
+                            )
+                        if is_node_unhealthy and not is_node_modified:
+                            key = "unhealthy"
+                            unhealthy_transitive = unhealthy_transitive.union(
+                                childs_transitive
+                            )
+
                         for reachable in childs_transitive:
                             if reachable != node:
-                                node_action_cause[reachable] |= {"modified": True}
+                                node_action_cause[reachable] |= {key: True}
                                 if "child" in node_action_cause[reachable]:
                                     node_action_cause[reachable]["child"].add(node)
                                 else:
@@ -134,14 +158,16 @@ class Planner:
                         for node_add in nodes_add:
                             parent_transitive = self._target.parents_transitive(
                                 node_add,
-                                accept=lambda adjacent: (adjacent[0] in self._modified),
+                                accept=lambda adjacent: (
+                                    adjacent[0] in self._unhealthy
+                                ),
                             )
-                            modified_transitive = modified_transitive.union(
+                            unhealthy_transitive = unhealthy_transitive.union(
                                 parent_transitive
                             )
                             for reachable in parent_transitive:
                                 if reachable != node:
-                                    node_action_cause[reachable] |= {"modified": True}
+                                    node_action_cause[reachable] |= {"unhealthy": True}
                                     if "parent" in node_action_cause[reachable]:
                                         node_action_cause[reachable]["parent"].add(node)
                                     else:
@@ -160,13 +186,16 @@ class Planner:
         for node in modified_transitive:
             node_action[node] = "modified"
 
+        for node in unhealthy_transitive:
+            node_action[node] = "unhealthy"
+
         operations = []
         for node in self._state.topological_order():
-            if node_action[node] in ["delete", "modified"]:
+            if node_action[node] in ["delete", "modified", "unhealthy"]:
                 operations.append(f"-{node}")
 
         for node in reversed(self._target.topological_order()):
-            if node_action[node] in ["add", "modified"]:
+            if node_action[node] in ["add", "modified", "unhealthy"]:
                 operations.append(f"+{node}")
 
         # handle node deletion of nodes w/ edges of type TOOL
