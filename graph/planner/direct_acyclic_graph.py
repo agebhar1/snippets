@@ -81,6 +81,9 @@ class DirectAcyclicGraph:
         result.reverse()
         self._topological_order = result
 
+    def has_node(self, node) -> bool:
+        return node in self._g
+
     def nodes(self) -> set[str]:
         return {item[0] for item in self._g.items()}
 
@@ -89,6 +92,9 @@ class DirectAcyclicGraph:
 
     def inverse(self) -> dict[str, list[AdjacentEdge]]:
         return self._g_inverse
+
+    def dependent_edge_types(self, node) -> set[EdgeType]:
+        return {adjacent[1] for adjacent in self._g_inverse[node]}
 
     def childs(
         self,

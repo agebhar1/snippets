@@ -1,8 +1,7 @@
 import unittest
 
-from direct_acyclic_graph import DirectAcyclicGraph, dependency, tool
-from planner import Planner
-
+from direct_acyclic_graph import DirectAcyclicGraph, dependency, tool, EdgeType
+from planner import Planner, NodeState
 
 DAG1 = DirectAcyclicGraph(
     g={
@@ -44,13 +43,79 @@ class PlanerTestCase(unittest.TestCase):
     def test_no_action(self):
         planner = Planner(state=DAG1, target=DAG1)
 
-        self.assertEqual([], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "e": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                [],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_DAG1_modified_multiple(self):
         planner = Planner(state=DAG1, target=DAG1, modified=["b", "d"])
 
         self.assertEqual(
-            ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"modified"},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                        transitive_state={"modified"},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state=set(),
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                        transitive_state={"modified"},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "e": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state=set(),
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
+            ),
             planner.apply(),
         )
 
@@ -58,7 +123,40 @@ class PlanerTestCase(unittest.TestCase):
         planner = Planner(state=DAG1, target=DAG1, unhealthy=["b", "d"])
 
         self.assertEqual(
-            ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"unhealthy"},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state={"unhealthy"},
+                        transitive_state={"unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state={"unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "e": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
+            ),
             planner.apply(),
         )
 
@@ -68,7 +166,40 @@ class PlanerTestCase(unittest.TestCase):
         )
 
         self.assertEqual(
-            ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"modified", "unhealthy"},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state={"modified", "unhealthy"},
+                        transitive_state={"modified", "unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"modified", "unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state={"modified", "unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "e": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
+            ),
             planner.apply(),
         )
 
@@ -76,7 +207,40 @@ class PlanerTestCase(unittest.TestCase):
         planner = Planner(state=DAG1, target=DAG1, modified=["b"], unhealthy=["d"])
 
         self.assertEqual(
-            ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"modified", "unhealthy"},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state={"modified"},
+                        transitive_state={"unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state={"unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "e": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
+            ),
             planner.apply(),
         )
 
@@ -84,7 +248,40 @@ class PlanerTestCase(unittest.TestCase):
         planner = Planner(state=DAG1, target=DAG1, modified=["e"])
 
         self.assertEqual(
-            ["-a", "-b", "-c", "-d", "-e", "+e", "+d", "+c", "+b", "+a"],
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"modified"},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"modified"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"modified"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"modified"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "e": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["-a", "-b", "-c", "-d", "-e", "+e", "+d", "+c", "+b", "+a"],
+            ),
             planner.apply(),
         )
 
@@ -92,19 +289,106 @@ class PlanerTestCase(unittest.TestCase):
         planner = Planner(state=DAG1, target=DAG1, unhealthy=["e"])
 
         self.assertEqual(
-            ["-a", "-b", "-c", "-d", "-e", "+e", "+d", "+c", "+b", "+a"],
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"unhealthy"},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "e": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state={"unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["-a", "-b", "-c", "-d", "-e", "+e", "+d", "+c", "+b", "+a"],
+            ),
             planner.apply(),
         )
 
     def test_apply_DAG3_modified_single(self):
         planner = Planner(state=DAG3, target=DAG3, modified=["d"])
 
-        self.assertEqual(["-d", "+d"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY, EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"}, active={"user"}, state={"modified"}
+                    ),
+                },
+                ["-d", "+d"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_DAG3_modified_root(self):
         planner = Planner(state=DAG3, target=DAG3, modified=["a"])
 
-        self.assertEqual(["-d", "-b", "-a", "+a", "+b", "+d"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"modified"},
+                        dependent_edge_types={EdgeType.DEPENDENCY, EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        transitive_state={"modified"},
+                    ),
+                },
+                ["-d", "-b", "-a", "+a", "+b", "+d"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_add_to_empty(self):
         planner = Planner(
@@ -113,7 +397,19 @@ class PlanerTestCase(unittest.TestCase):
         )
 
         self.assertEqual(
-            ["+b", "+a"],
+            (
+                {
+                    "a": NodeState(present={"target"}, active={"user"}, action="add"),
+                    "b": NodeState(
+                        present={"target"},
+                        active={"user"},
+                        transitive_action={"add"},
+                        action="add",
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["+b", "+a"],
+            ),
             planner.apply(),
         )
 
@@ -125,7 +421,26 @@ class PlanerTestCase(unittest.TestCase):
             ),
         )
 
-        self.assertEqual(["+c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(present={"state", "target"}, active={"user"}),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c": NodeState(
+                        present={"target"},
+                        active={"user"},
+                        action="add",
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["+c"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_remove_all(self):
         planner = Planner(
@@ -134,7 +449,23 @@ class PlanerTestCase(unittest.TestCase):
         )
 
         self.assertEqual(
-            ["-a", "-b"],
+            (
+                {
+                    "a": NodeState(
+                        present={"state"},
+                        active={"user"},
+                        action="delete",
+                        transitive_action={"delete"},
+                    ),
+                    "b": NodeState(
+                        present={"state"},
+                        active={"user"},
+                        action="delete",
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["-a", "-b"],
+            ),
             planner.apply(),
         )
 
@@ -142,7 +473,36 @@ class PlanerTestCase(unittest.TestCase):
         planner = Planner(state=DAG3, target=DirectAcyclicGraph(g={}))
 
         self.assertEqual(
-            ["-d", "-c", "-b", "-a"],
+            (
+                {
+                    "a": NodeState(
+                        present={"state"},
+                        active={"user"},
+                        action="delete",
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b": NodeState(
+                        present={"state"},
+                        active={"user"},
+                        action="delete",
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY, EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"state"},
+                        active={"user"},
+                        action="delete",
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state"},
+                        active={"user"},
+                        action="delete",
+                        transitive_action={"delete"},
+                    ),
+                },
+                ["-d", "-c", "-b", "-a"],
+            ),
             planner.apply(),
         )
 
@@ -153,7 +513,18 @@ class PlanerTestCase(unittest.TestCase):
         )
 
         self.assertEqual(
-            ["-b", "+c"],
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b": NodeState(present={"state"}, active={"user"}, action="delete"),
+                    "c": NodeState(present={"target"}, active={"user"}, action="add"),
+                },
+                ["-b", "+c"],
+            ),
             planner.apply(),
         )
 
@@ -166,13 +537,90 @@ class PlanerTestCase(unittest.TestCase):
             modified=["c"],
         )
 
-        self.assertEqual(["-c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                    ),
+                    "c": NodeState(
+                        present={"state"},
+                        active={"user"},
+                        action="delete",
+                        state={"modified"},
+                    ),
+                },
+                ["-c"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_delete_DAG2_temporarily(self):
         planner = Planner(state=DAG2, target=DAG2, selected=["-c1d1"])
 
         self.assertEqual(
-            ["-a", "-b", "-d", "-d1", "-c", "-c1", "-c1d1"],
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c1": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c1d1": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c2": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c2d2": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d1": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d2": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "e": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["-a", "-b", "-d", "-d1", "-c", "-c1", "-c1d1"],
+            ),
             planner.apply(),
         )
 
@@ -195,19 +643,131 @@ class PlanerTestCase(unittest.TestCase):
         )
 
         self.assertEqual(
-            ["-a", "-b", "-d", "-d1", "-c", "-c1", "-c1d1"],
+            (
+                {
+                    "a": NodeState(
+                        present={"state"},
+                        transitive_action={"delete"},
+                    ),
+                    "b": NodeState(
+                        present={"state"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c1": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c1d1": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c2": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c2d2": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d1": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d2": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "e": NodeState(
+                        present={"state"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["-a", "-b", "-d", "-d1", "-c", "-c1", "-c1d1"],
+            ),
             planner.apply(),
         )
 
     def test_apply_delete_roots_DAG2_temporarily(self):
         planner = Planner(state=DAG2, target=DAG2, selected=["-c1d1", "-c2d2"])
 
-        actual = planner.apply()
         self.assertEqual(
-            ["-a", "-b", "-d", "-d2", "-d1", "-c", "-c2", "-c2d2", "-c1", "-c1d1"],
-            actual,
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c1": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c1d1": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c2": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c2d2": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d1": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d2": NodeState(
+                        present={"state", "target"},
+                        transitive_action={"delete"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "e": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["-a", "-b", "-d", "-d2", "-d1", "-c", "-c2", "-c2d2", "-c1", "-c1d1"],
+            ),
+            planner.apply(),
         )
-        self.assertNotIn("e", actual)
 
     def test_apply_delete_with_modified_one_TOOL_edge(self):
         planner = Planner(
@@ -218,7 +778,28 @@ class PlanerTestCase(unittest.TestCase):
             modified=["b"],
             selected=["-c"],
         )
-        self.assertEqual(["-c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                    ),
+                },
+                ["-c"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_delete_with_unhealthy_one_TOOL_edge(self):
         planner = Planner(
@@ -229,7 +810,28 @@ class PlanerTestCase(unittest.TestCase):
             unhealthy=["b"],
             selected=["-c"],
         )
-        self.assertEqual(["-b", "+b", "-c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        state={"unhealthy"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                    ),
+                },
+                ["-b", "+b", "-c"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_delete_with_one_modified_two_TOOL_edge_in_chain(self):
         planner = Planner(
@@ -242,7 +844,32 @@ class PlanerTestCase(unittest.TestCase):
             modified=["b2"],
             selected=["-c"],
         )
-        self.assertEqual(["-c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b1": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "b2": NodeState(
+                        present={"state", "target"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                    ),
+                },
+                ["-c"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_delete_with_one_unhealthy_two_TOOL_edge_in_chain(self):
         planner = Planner(
@@ -255,7 +882,32 @@ class PlanerTestCase(unittest.TestCase):
             unhealthy=["b2"],
             selected=["-c"],
         )
-        self.assertEqual(["-b2", "+b2", "-c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b1": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "b2": NodeState(
+                        present={"state", "target"},
+                        state={"unhealthy"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                    ),
+                },
+                ["-b2", "+b2", "-c"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_delete_with_two_modified_two_TOOL_edge_in_chain(self):
         planner = Planner(
@@ -268,7 +920,33 @@ class PlanerTestCase(unittest.TestCase):
             modified=["b1", "b2"],
             selected=["-c"],
         )
-        self.assertEqual(["-c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b1": NodeState(
+                        present={"state", "target"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "b2": NodeState(
+                        present={"state", "target"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                    ),
+                },
+                ["-c"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_delete_with_two_unhealthy_two_TOOL_edge_in_chain(self):
         planner = Planner(
@@ -281,7 +959,33 @@ class PlanerTestCase(unittest.TestCase):
             unhealthy=["b1", "b2"],
             selected=["-c"],
         )
-        self.assertEqual(["-b2", "-b1", "+b1", "+b2", "-c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b1": NodeState(
+                        present={"state", "target"},
+                        state={"unhealthy"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "b2": NodeState(
+                        present={"state", "target"},
+                        state={"unhealthy"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                    ),
+                },
+                ["-b1", "-b2", "+b2", "+b1", "-c"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_delete_with_one_modified_two_TOOL_edge_in_chain_skip(self):
         planner = Planner(
@@ -294,24 +998,127 @@ class PlanerTestCase(unittest.TestCase):
             modified=["b1"],
             selected=["-c"],
         )
-        self.assertEqual(["-c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b1": NodeState(
+                        present={"state", "target"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "b2": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                    ),
+                },
+                ["-c"],
+            ),
+            planner.apply(),
+        )
 
     def test_no_action_apply_selected(self):
         planner = Planner(state=DAG1, target=DAG1, modified=[], selected=["c"])
 
-        self.assertEqual([], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(present={"state", "target"}),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "e": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                [],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_DAG1_modified_multiple_single_selected(self):
         planner = Planner(state=DAG1, target=DAG1, modified=["b", "d"], selected=["b"])
 
-        self.assertEqual(["-a", "-b", "+b", "+a"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        transitive_state={"modified"},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(
+                        present={"state", "target"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "e": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["-a", "-b", "+b", "+a"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_DAG3_selected_target(self):
         planner = Planner(
             state=DirectAcyclicGraph(g={"a": dependency()}), target=DAG3, selected=["c"]
         )
 
-        self.assertEqual(["+b", "+c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b": NodeState(
+                        present={"target"},
+                        transitive_action={"add"},
+                        dependent_edge_types={EdgeType.DEPENDENCY, EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"target"},
+                        active={"user"},
+                        action="add",
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(present={"target"}),
+                },
+                ["+b", "+c"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_DAG3_selected_target_modified(self):
         planner = Planner(
@@ -321,7 +1128,31 @@ class PlanerTestCase(unittest.TestCase):
             selected=["c"],
         )
 
-        self.assertEqual(["+b", "+c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b": NodeState(
+                        present={"target"},
+                        transitive_action={"add"},
+                        dependent_edge_types={EdgeType.DEPENDENCY, EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"target"},
+                        active={"user"},
+                        action="add",
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(present={"target"}),
+                },
+                ["+b", "+c"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_DAG3_selected_target_unhealthy(self):
         planner = Planner(
@@ -331,7 +1162,32 @@ class PlanerTestCase(unittest.TestCase):
             selected=["c"],
         )
 
-        self.assertEqual(["-a", "+a", "+b", "+c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        state={"unhealthy"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b": NodeState(
+                        present={"target"},
+                        transitive_action={"add"},
+                        dependent_edge_types={EdgeType.DEPENDENCY, EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"target"},
+                        active={"user"},
+                        action="add",
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "d": NodeState(present={"target"}),
+                },
+                # TODO? ["-a", "+a", "+b", "+c"],
+                ["+b", "+c"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_DAG3_selected_target_modified_one_TOOL_edge(self):
         planner = Planner(
@@ -343,7 +1199,24 @@ class PlanerTestCase(unittest.TestCase):
             selected=["c"],
         )
 
-        self.assertEqual(["+c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "c": NodeState(present={"target"}, active={"user"}, action="add"),
+                },
+                ["+c"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_DAG3_selected_target_unhealthy_one_TOOL_edge(self):
         planner = Planner(
@@ -355,7 +1228,24 @@ class PlanerTestCase(unittest.TestCase):
             selected=["c"],
         )
 
-        self.assertEqual(["-b", "+b", "+c"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        state={"unhealthy"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "c": NodeState(present={"target"}, active={"user"}, action="add"),
+                },
+                ["-b", "+b", "+c"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_DAG3_selected_target_modified_one_TOOL_edge_chain_skip(self):
         planner = Planner(
@@ -373,7 +1263,33 @@ class PlanerTestCase(unittest.TestCase):
             selected=["e"],
         )
 
-        self.assertEqual(["+d", "+e"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "d": NodeState(
+                        present={"target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                        transitive_action={"add"},
+                    ),
+                    "e": NodeState(present={"target"}, active={"user"}, action="add"),
+                },
+                ["+d", "+e"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_selected_TOOL_edge_modified(self):
         planner = Planner(
@@ -383,7 +1299,24 @@ class PlanerTestCase(unittest.TestCase):
             selected=["-a"],
         )
 
-        self.assertEqual(["-a"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        state={"modified"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                },
+                ["-a"],
+            ),
+            planner.apply(),
+        )
 
     def test_apply_selected_TOOL_edge_unhealthy(self):
         planner = Planner(
@@ -393,4 +1326,91 @@ class PlanerTestCase(unittest.TestCase):
             selected=["-a"],
         )
 
-        self.assertEqual(["-b", "+b", "-a"], planner.apply())
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        state={"unhealthy"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                },
+                ["-b", "+b", "-a"],
+            ),
+            planner.apply(),
+        )
+
+    def test_apply_unhealthy_tool(self):
+        planner = Planner(
+            state=DirectAcyclicGraph(
+                g={"a": dependency("c") + tool("b"), "b": dependency("c"), "c": []}
+            ),
+            target=DirectAcyclicGraph(
+                g={"a": dependency("c") + tool("b"), "b": dependency("c"), "c": []}
+            ),
+            unhealthy=["b"],
+            selected=["-a", "-b", "-c"],
+        )
+
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                        transitive_action={"delete"},
+                    ),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                        transitive_action={"delete"},
+                        state={"unhealthy"},
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["-b", "+b", "-a", "-b", "-c"],
+            ),
+            planner.apply(),
+        )
+
+    def test_apply_delete_tool(self):
+        planner = Planner(
+            state=DirectAcyclicGraph(g={"b": dependency("c"), "c": []}),
+            target=DirectAcyclicGraph(
+                g={"a": dependency("c") + tool("b"), "b": dependency("c"), "c": []}
+            ),
+            selected=["a", "-b"],
+        )
+
+        self.assertEqual(
+            (
+                {
+                    "a": NodeState(present={"target"}, active={"user"}, action="add"),
+                    "b": NodeState(
+                        present={"state", "target"},
+                        active={"user"},
+                        action="delete",
+                        dependent_edge_types={EdgeType.TOOL},
+                    ),
+                    "c": NodeState(
+                        present={"state", "target"},
+                        dependent_edge_types={EdgeType.DEPENDENCY},
+                    ),
+                },
+                ["+a", "-b"],
+            ),
+            planner.apply(),
+        )
