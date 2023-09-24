@@ -24,7 +24,7 @@ class Planner:
         self._unhealthy = unhealthy or []
         self._selected = selected
 
-    def apply(self) -> tuple[list[str], dict[str, bool | set[str]]]:
+    def apply(self) -> list[str]:
         nodes_state = self._state.nodes()
         nodes_target = self._target.nodes()
 
@@ -33,8 +33,6 @@ class Planner:
         nodes_with_edge_type_tool_delete = set()
         modified_transitive = set()
         unhealthy_transitive = set()
-
-        node_action_cause = {node: dict() for node in nodes_state.union(nodes_target)}
 
         if self._selected == "*":
             nodes_add = {node for node in nodes_target - nodes_state}
@@ -58,7 +56,6 @@ class Planner:
                 if item.startswith("-"):
                     # delete case
                     node = str(item[1:])
-                    node_action_cause[node] |= {"selected": True}
                     has_parent_with_edge_type_tool = len(self._state.parents(node)) > 0
                     if has_parent_with_edge_type_tool:
                         parents_edge_type_tool_transitive = (
@@ -71,13 +68,6 @@ class Planner:
                         unhealthy_transitive = unhealthy_transitive.union(
                             parents_edge_type_tool_transitive
                         )
-                        for reachable in parents_edge_type_tool_transitive:
-                            if reachable != node:
-                                node_action_cause[reachable] |= {"unhealthy": "True"}
-                                if "parent" in node_action_cause[reachable]:
-                                    node_action_cause[reachable]["parent"].add(node)
-                                else:
-                                    node_action_cause[reachable] |= {"parent": {node}}
 
                         childs_transitive = self._state.childs_transitive(
                             node,
@@ -88,12 +78,6 @@ class Planner:
                             nodes_with_edge_type_tool_delete.union(childs_transitive)
                         )
 
-                        for reachable in childs_transitive:
-                            if reachable != node:
-                                if "child" in node_action_cause[reachable]:
-                                    node_action_cause[reachable]["child"].add(node)
-                                else:
-                                    node_action_cause[reachable] |= {"child": {node}}
                     else:
                         # use state (graph) instead of target, because target will be mostly ignored in this mode
                         childs_transitive = self._state.childs_transitive(
@@ -102,16 +86,9 @@ class Planner:
                         ).union({node})
 
                         nodes_delete = nodes_delete.union(childs_transitive)
-                        for reachable in childs_transitive:
-                            if reachable != node:
-                                if "child" in node_action_cause[reachable]:
-                                    node_action_cause[reachable]["child"].add(node)
-                                else:
-                                    node_action_cause[reachable] |= {"child": {node}}
 
                 else:
                     node = item
-                    node_action_cause[node] |= {"selected": True}
 
                     is_node_modified = node in self._modified
                     is_node_unhealthy = node in self._unhealthy
@@ -135,25 +112,11 @@ class Planner:
                                 childs_transitive
                             )
 
-                        for reachable in childs_transitive:
-                            if reachable != node:
-                                node_action_cause[reachable] |= {key: True}
-                                if "child" in node_action_cause[reachable]:
-                                    node_action_cause[reachable]["child"].add(node)
-                                else:
-                                    node_action_cause[reachable] |= {"child": {node}}
-
                     elif node in nodes_target:
                         node_with_parents_transitive = self._target.parents_transitive(
                             node
                         ).union({node})
                         nodes_add = node_with_parents_transitive.difference(nodes_state)
-                        for reachable in nodes_add:
-                            if reachable != node:
-                                if "parent" in node_action_cause[reachable]:
-                                    node_action_cause[reachable]["parent"].add(node)
-                                else:
-                                    node_action_cause[reachable] |= {"parent": {node}}
 
                         for node_add in nodes_add:
                             parent_transitive = self._target.parents_transitive(
@@ -165,15 +128,6 @@ class Planner:
                             unhealthy_transitive = unhealthy_transitive.union(
                                 parent_transitive
                             )
-                            for reachable in parent_transitive:
-                                if reachable != node:
-                                    node_action_cause[reachable] |= {"unhealthy": True}
-                                    if "parent" in node_action_cause[reachable]:
-                                        node_action_cause[reachable]["parent"].add(node)
-                                    else:
-                                        node_action_cause[reachable] |= {
-                                            "parent": {node}
-                                        }
 
         node_action = {node: None for node in nodes_state.union(nodes_target)}
 
@@ -207,6 +161,4 @@ class Planner:
             if node_action[node] in ["delete"]:
                 operations.append(f"-{node}")
 
-        return operations, {
-            key: value for key, value in node_action_cause.items() if len(value) > 0
-        }
+        return operations
