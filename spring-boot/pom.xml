@@ -22,7 +22,7 @@
         <diktat.version>1.2.5</diktat.version>
         <spotless.version>2.40.0</spotless.version>
         <!-- dependency version(s) -->
-        <testcontainers.version>1.19.0</testcontainers.version>
+        <testcontainers.version>1.19.1</testcontainers.version>
         <junit-pioneer.version>2.1.0</junit-pioneer.version>
     </properties>
 
