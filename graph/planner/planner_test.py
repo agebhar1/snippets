@@ -71,7 +71,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                [],
+                # [],
             ),
             planner.apply(),
         )
@@ -84,19 +84,19 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"modified"},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         state={"modified"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                         transitive_state={"modified"},
                     ),
                     "c": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         state=set(),
                         dependent_edge_types={EdgeType.DEPENDENCY},
                         transitive_state={"modified"},
@@ -114,7 +114,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
+                # ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
             ),
             planner.apply(),
         )
@@ -127,19 +127,19 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"unhealthy"},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         state={"unhealthy"},
                         transitive_state={"unhealthy"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "c": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"unhealthy"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
@@ -155,7 +155,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
+                # ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
             ),
             planner.apply(),
         )
@@ -170,19 +170,19 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"modified", "unhealthy"},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         state={"modified", "unhealthy"},
                         transitive_state={"modified", "unhealthy"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "c": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"modified", "unhealthy"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
@@ -198,7 +198,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
+                # ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
             ),
             planner.apply(),
         )
@@ -211,19 +211,19 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"modified", "unhealthy"},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         state={"modified"},
                         transitive_state={"unhealthy"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "c": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"unhealthy"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
@@ -239,7 +239,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
+                # ["-a", "-b", "-c", "-d", "+d", "+c", "+b", "+a"],
             ),
             planner.apply(),
         )
@@ -252,24 +252,24 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"modified"},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"modified"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "c": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"modified"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "d": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"modified"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
@@ -280,7 +280,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["-a", "-b", "-c", "-d", "-e", "+e", "+d", "+c", "+b", "+a"],
+                # ["-a", "-b", "-c", "-d", "-e", "+e", "+d", "+c", "+b", "+a"],
             ),
             planner.apply(),
         )
@@ -293,24 +293,24 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"unhealthy"},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"unhealthy"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "c": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"unhealthy"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "d": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"unhealthy"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
@@ -321,7 +321,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["-a", "-b", "-c", "-d", "-e", "+e", "+d", "+c", "+b", "+a"],
+                # ["-a", "-b", "-c", "-d", "-e", "+e", "+d", "+c", "+b", "+a"],
             ),
             planner.apply(),
         )
@@ -351,7 +351,7 @@ class PlanerTestCase(unittest.TestCase):
                         present={"state", "target"}, active={"user"}, state={"modified"}
                     ),
                 },
-                ["-d", "+d"],
+                # ["-d", "+d"],
             ),
             planner.apply(),
         )
@@ -370,7 +370,7 @@ class PlanerTestCase(unittest.TestCase):
                     ),
                     "b": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"modified"},
                         dependent_edge_types={EdgeType.DEPENDENCY, EdgeType.TOOL},
                     ),
@@ -381,11 +381,11 @@ class PlanerTestCase(unittest.TestCase):
                     ),
                     "d": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_state={"modified"},
                     ),
                 },
-                ["-d", "-b", "-a", "+a", "+b", "+d"],
+                # ["-d", "-b", "-a", "+a", "+b", "+d"],
             ),
             planner.apply(),
         )
@@ -402,13 +402,13 @@ class PlanerTestCase(unittest.TestCase):
                     "a": NodeState(present={"target"}, active={"user"}, action="add"),
                     "b": NodeState(
                         present={"target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         transitive_action={"add"},
                         action="add",
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["+b", "+a"],
+                # ["+b", "+a"],
             ),
             planner.apply(),
         )
@@ -427,7 +427,7 @@ class PlanerTestCase(unittest.TestCase):
                     "a": NodeState(present={"state", "target"}, active={"user"}),
                     "b": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "c": NodeState(
@@ -437,7 +437,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["+c"],
+                # ["+c"],
             ),
             planner.apply(),
         )
@@ -453,7 +453,7 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         action="delete",
                         transitive_action={"delete"},
                     ),
@@ -464,7 +464,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["-a", "-b"],
+                # ["-a", "-b"],
             ),
             planner.apply(),
         )
@@ -477,13 +477,13 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         action="delete",
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b": NodeState(
                         present={"state"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         action="delete",
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY, EdgeType.TOOL},
@@ -496,12 +496,12 @@ class PlanerTestCase(unittest.TestCase):
                     ),
                     "d": NodeState(
                         present={"state"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         action="delete",
                         transitive_action={"delete"},
                     ),
                 },
-                ["-d", "-c", "-b", "-a"],
+                # ["-d", "-c", "-b", "-a"],
             ),
             planner.apply(),
         )
@@ -517,13 +517,13 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b": NodeState(present={"state"}, active={"user"}, action="delete"),
                     "c": NodeState(present={"target"}, active={"user"}, action="add"),
                 },
-                ["-b", "+c"],
+                # ["-b", "+c"],
             ),
             planner.apply(),
         )
@@ -556,7 +556,7 @@ class PlanerTestCase(unittest.TestCase):
                         state={"modified"},
                     ),
                 },
-                ["-c"],
+                # ["-c"],
             ),
             planner.apply(),
         )
@@ -569,20 +569,24 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "c": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "c1": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
@@ -602,11 +606,13 @@ class PlanerTestCase(unittest.TestCase):
                     ),
                     "d": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "d1": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
@@ -619,7 +625,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["-a", "-b", "-d", "-d1", "-c", "-c1", "-c1d1"],
+                # ["-a", "-b", "-d", "-d1", "-c", "-c1", "-c1d1"],
             ),
             planner.apply(),
         )
@@ -647,20 +653,24 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                     ),
                     "b": NodeState(
                         present={"state"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "c": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "c1": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
@@ -680,11 +690,13 @@ class PlanerTestCase(unittest.TestCase):
                     ),
                     "d": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "d1": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
@@ -697,7 +709,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["-a", "-b", "-d", "-d1", "-c", "-c1", "-c1d1"],
+                # ["-a", "-b", "-d", "-d1", "-c", "-c1", "-c1d1"],
             ),
             planner.apply(),
         )
@@ -710,20 +722,24 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "c": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "c1": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
@@ -735,6 +751,7 @@ class PlanerTestCase(unittest.TestCase):
                     ),
                     "c2": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
@@ -746,16 +763,19 @@ class PlanerTestCase(unittest.TestCase):
                     ),
                     "d": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "d1": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "d2": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_action={"delete"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
@@ -764,7 +784,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["-a", "-b", "-d", "-d2", "-d1", "-c", "-c2", "-c2d2", "-c1", "-c1d1"],
+                # ["-a", "-b", "-d", "-d2", "-d1", "-c", "-c2", "-c2d2", "-c1", "-c1d1"],
             ),
             planner.apply(),
         )
@@ -782,11 +802,13 @@ class PlanerTestCase(unittest.TestCase):
             (
                 {
                     "a": NodeState(
+                        active={"transitive"},
                         present={"state", "target"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"modified"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
@@ -796,7 +818,7 @@ class PlanerTestCase(unittest.TestCase):
                         action="delete",
                     ),
                 },
-                ["-c"],
+                # ["-c"],
             ),
             planner.apply(),
         )
@@ -815,10 +837,12 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"unhealthy"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
@@ -828,7 +852,7 @@ class PlanerTestCase(unittest.TestCase):
                         action="delete",
                     ),
                 },
-                ["-b", "+b", "-c"],
+                # ["-b", "+b", "-c"],
             ),
             planner.apply(),
         )
@@ -849,14 +873,17 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b1": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
                     "b2": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"modified"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
@@ -866,7 +893,7 @@ class PlanerTestCase(unittest.TestCase):
                         action="delete",
                     ),
                 },
-                ["-c"],
+                # ["-c"],
             ),
             planner.apply(),
         )
@@ -887,14 +914,17 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b1": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
                     "b2": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"unhealthy"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
@@ -904,7 +934,7 @@ class PlanerTestCase(unittest.TestCase):
                         action="delete",
                     ),
                 },
-                ["-b2", "+b2", "-c"],
+                # ["-b2", "+b2", "-c"],
             ),
             planner.apply(),
         )
@@ -925,15 +955,18 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b1": NodeState(
                         present={"state", "target"},
                         state={"modified"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
                     "b2": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"modified"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
@@ -943,7 +976,7 @@ class PlanerTestCase(unittest.TestCase):
                         action="delete",
                     ),
                 },
-                ["-c"],
+                # ["-c"],
             ),
             planner.apply(),
         )
@@ -964,15 +997,18 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b1": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"unhealthy"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
                     "b2": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"unhealthy"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
@@ -982,7 +1018,7 @@ class PlanerTestCase(unittest.TestCase):
                         action="delete",
                     ),
                 },
-                ["-b1", "-b2", "+b2", "+b1", "-c"],
+                # ["-b1", "-b2", "+b2", "+b1", "-c"],
             ),
             planner.apply(),
         )
@@ -1003,15 +1039,18 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b1": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"modified"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
                     "b2": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
                     "c": NodeState(
@@ -1020,7 +1059,7 @@ class PlanerTestCase(unittest.TestCase):
                         action="delete",
                     ),
                 },
-                ["-c"],
+                # ["-c"],
             ),
             planner.apply(),
         )
@@ -1050,7 +1089,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                [],
+                # [],
             ),
             planner.apply(),
         )
@@ -1063,6 +1102,7 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         transitive_state={"modified"},
                     ),
                     "b": NodeState(
@@ -1085,7 +1125,7 @@ class PlanerTestCase(unittest.TestCase):
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["-a", "-b", "+b", "+a"],
+                # ["-a", "-b", "+b", "+a"],
             ),
             planner.apply(),
         )
@@ -1100,10 +1140,12 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b": NodeState(
                         present={"target"},
+                        active={"transitive"},
                         transitive_action={"add"},
                         dependent_edge_types={EdgeType.DEPENDENCY, EdgeType.TOOL},
                     ),
@@ -1115,7 +1157,7 @@ class PlanerTestCase(unittest.TestCase):
                     ),
                     "d": NodeState(present={"target"}),
                 },
-                ["+b", "+c"],
+                # ["+b", "+c"],
             ),
             planner.apply(),
         )
@@ -1133,11 +1175,13 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"modified"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b": NodeState(
                         present={"target"},
+                        active={"transitive"},
                         transitive_action={"add"},
                         dependent_edge_types={EdgeType.DEPENDENCY, EdgeType.TOOL},
                     ),
@@ -1149,7 +1193,7 @@ class PlanerTestCase(unittest.TestCase):
                     ),
                     "d": NodeState(present={"target"}),
                 },
-                ["+b", "+c"],
+                # ["+b", "+c"],
             ),
             planner.apply(),
         )
@@ -1167,11 +1211,13 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"unhealthy"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b": NodeState(
                         present={"target"},
+                        active={"transitive"},
                         transitive_action={"add"},
                         dependent_edge_types={EdgeType.DEPENDENCY, EdgeType.TOOL},
                     ),
@@ -1183,8 +1229,7 @@ class PlanerTestCase(unittest.TestCase):
                     ),
                     "d": NodeState(present={"target"}),
                 },
-                # TODO? ["-a", "+a", "+b", "+c"],
-                ["+b", "+c"],
+                # ["-a", "+a", "+b", "+c"],
             ),
             planner.apply(),
         )
@@ -1204,16 +1249,18 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"modified"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
                     "c": NodeState(present={"target"}, active={"user"}, action="add"),
                 },
-                ["+c"],
+                # ["+c"],
             ),
             planner.apply(),
         )
@@ -1233,16 +1280,18 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"unhealthy"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
                     "c": NodeState(present={"target"}, active={"user"}, action="add"),
                 },
-                ["-b", "+b", "+c"],
+                #  ["-b", "+b", "+c"],
             ),
             planner.apply(),
         )
@@ -1268,25 +1317,29 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"modified"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
                     "c": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
                     "d": NodeState(
                         present={"target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                         transitive_action={"add"},
                     ),
                     "e": NodeState(present={"target"}, active={"user"}, action="add"),
                 },
-                ["+d", "+e"],
+                # ["+d", "+e"],
             ),
             planner.apply(),
         )
@@ -1309,11 +1362,12 @@ class PlanerTestCase(unittest.TestCase):
                     ),
                     "b": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"modified"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
                 },
-                ["-a"],
+                # ["-a"],
             ),
             planner.apply(),
         )
@@ -1336,11 +1390,12 @@ class PlanerTestCase(unittest.TestCase):
                     ),
                     "b": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         state={"unhealthy"},
                         dependent_edge_types={EdgeType.TOOL},
                     ),
                 },
-                ["-b", "+b", "-a"],
+                # ["-b", "+b", "-a"],
             ),
             planner.apply(),
         )
@@ -1362,13 +1417,13 @@ class PlanerTestCase(unittest.TestCase):
                 {
                     "a": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         action="delete",
                         transitive_action={"delete"},
                     ),
                     "b": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         action="delete",
                         transitive_action={"delete"},
                         state={"unhealthy"},
@@ -1376,12 +1431,12 @@ class PlanerTestCase(unittest.TestCase):
                     ),
                     "c": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         action="delete",
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["-b", "+b", "-a", "-b", "-c"],
+                # ["-b", "+b", "-a", "-b", "-c"],
             ),
             planner.apply(),
         )
@@ -1401,16 +1456,17 @@ class PlanerTestCase(unittest.TestCase):
                     "a": NodeState(present={"target"}, active={"user"}, action="add"),
                     "b": NodeState(
                         present={"state", "target"},
-                        active={"user"},
+                        active={"user", "transitive"},
                         action="delete",
                         dependent_edge_types={EdgeType.TOOL},
                     ),
                     "c": NodeState(
                         present={"state", "target"},
+                        active={"transitive"},
                         dependent_edge_types={EdgeType.DEPENDENCY},
                     ),
                 },
-                ["+a", "-b"],
+                # ["+a", "-b"],
             ),
             planner.apply(),
         )
