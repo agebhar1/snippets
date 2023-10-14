@@ -9,7 +9,7 @@ jobs:
       matrix:
         javaVersion: [ "17", "21" ]
         javaDistribution: [ "temurin", "zulu" ]
-        pgDockerTag: [ "15.3", "14.8", "13.11", "12.15", "11.20-bullseye" ]
+        pgDockerTag: [ "15.4", "14.9", "13.12", "12.16", "11.21-bullseye" ]
     name: Java ${{ matrix.javaVersion }}-${{ matrix.javaDistribution }} w/ PostgreSQL ${{ matrix.pgDockerTag }}
     steps:
       - uses: actions/checkout@v3
