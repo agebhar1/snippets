@@ -20,7 +20,6 @@
     <properties>
         <!-- plugin version(s) -->
         <diktat.version>1.2.5</diktat.version>
-        <spotless.version>2.41.1</spotless.version>
         <!-- dependency version(s) -->
         <testcontainers.version>1.19.3</testcontainers.version>
         <junit-pioneer.version>2.2.0</junit-pioneer.version>
@@ -133,34 +132,7 @@
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
         <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>com.diffplug.spotless</groupId>
-                    <artifactId>spotless-maven-plugin</artifactId>
-                    <version>${spotless.version}</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
-            <plugin>
-                <groupId>com.diffplug.spotless</groupId>
-                <artifactId>spotless-maven-plugin</artifactId>
-                <configuration>
-                    <kotlin>
-                        <diktat>
-                            <version>${diktat.version}</version>
-                        </diktat>
-                    </kotlin>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.cqfn.diktat</groupId>
                 <artifactId>diktat-maven-plugin</artifactId>
