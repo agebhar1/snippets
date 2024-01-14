@@ -10,8 +10,9 @@ import org.springframework.context.annotation.Bean
 import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.MessageChannels
+import org.springframework.integration.dsl.PollerFactory.fixedRate
+import org.springframework.integration.dsl.StandardIntegrationFlow
 import org.springframework.integration.dsl.integrationFlow
-import org.springframework.integration.file.FileReadingMessageSource
 import org.springframework.integration.file.FileReadingMessageSource.WatchEventType.CREATE
 import org.springframework.integration.file.dsl.FileInboundChannelAdapterSpec
 import org.springframework.integration.file.dsl.Files.inboundAdapter
@@ -19,8 +20,8 @@ import org.springframework.integration.file.dsl.Files.toStringTransformer
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 import java.nio.file.Path
+import java.time.Duration.ofSeconds
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 import kotlin.io.path.div
 import kotlin.io.path.moveTo
@@ -47,17 +48,17 @@ class SpringIntegrationFileIntTest {
     @EnableIntegration
     @TestConfiguration
     class Configuration {
-        @Bean fun output(): QueueChannel = MessageChannels.queue().get()
+        @Bean fun output() = MessageChannels.queue()
 
         @Bean
-        fun flow() =
+        fun flow(): StandardIntegrationFlow =
             integrationFlow(
                 filesFromDirectory(tmpPath) {
                     patternFilter("*.txt")
                     watchEvents(CREATE)
                     useWatchService(true)
                 },
-                { poller { it.fixedRate(1, TimeUnit.SECONDS, 1) } }) {
+                { poller(fixedRate(ofSeconds(1), ofSeconds(1))) }) {
                 transform(toStringTransformer())
                 transform<String> { it.uppercase(Locale.getDefault()) }
                 channel(output())
@@ -66,7 +67,7 @@ class SpringIntegrationFileIntTest {
         private fun filesFromDirectory(
             directory: Path,
             configurer: FileInboundChannelAdapterSpec.() -> Unit
-        ): FileReadingMessageSource = inboundAdapter(directory.toFile()).also { configurer(it) }.get()
+        ) = inboundAdapter(directory.toFile()).also { configurer(it) }
     }
 
     companion object {
