@@ -21,7 +21,7 @@
         <!-- plugin version(s) -->
         <diktat.version>1.2.5</diktat.version>
         <!-- dependency version(s) -->
-        <testcontainers.version>1.19.4</testcontainers.version>
+        <testcontainers.version>1.19.5</testcontainers.version>
         <junit-pioneer.version>2.2.0</junit-pioneer.version>
     </properties>
 
