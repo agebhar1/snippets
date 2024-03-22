@@ -16,8 +16,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.postgresql.jdbc.PgSQLXML
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
@@ -45,13 +43,12 @@ import kotlin.random.Random.Default.nextLong
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-@AutoConfigureTestDatabase(replace = NONE)
 @Import(
     JdbcInboxXmlMessageRepository::class,
     Jdbc4SqlXmlHandler::class,
     ModifiableFixedUTCClock::class
 )
-@JdbcTest(properties = ["spring.datasource.url=jdbc:tc:postgresql:15.2:///"])
+@JdbcTest
 @TestConstructor(autowireMode = ALL)
 class AtLeastOnceInboxXmlMessageProcessingTest(
     private val clock: ModifiableFixedUTCClock,
