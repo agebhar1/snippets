@@ -15,7 +15,7 @@ import org.springframework.integration.channel.DirectChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.core.MessagingTemplate
 import org.springframework.integration.support.MessageBuilder
-import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
 import org.springframework.messaging.MessageHeaders
 import org.springframework.messaging.handler.annotation.Payload
@@ -25,6 +25,8 @@ import org.springframework.test.context.TestConstructor
 import org.springframework.test.context.TestConstructor.AutowireMode.ALL
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
+import org.springframework.test.jdbc.JdbcTestUtils.countRowsInTable
+import org.springframework.test.jdbc.JdbcTestUtils.countRowsInTableWhere
 import org.springframework.transaction.annotation.Propagation.MANDATORY
 import org.springframework.transaction.annotation.Propagation.NEVER
 import org.springframework.transaction.annotation.Transactional
@@ -67,8 +69,8 @@ class JustAService(
 @TestConstructor(autowireMode = ALL)
 @Transactional(propagation = NEVER)
 class SpringIntegrationInboundChannelEventualConsistencyTest(
-    val txTemplate: TransactionTemplate,
-    val jdbcTemplate: JdbcTemplate,
+    private val jdbcClient: JdbcClient,
+    private val txTemplate: TransactionTemplate,
     private val messagingTemplate: MessagingTemplate
 ) {
     @Test
@@ -77,11 +79,7 @@ class SpringIntegrationInboundChannelEventualConsistencyTest(
 
         txTemplate.execute { messagingTemplate.send(message) }
 
-        val actual =
-            jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM INBOX_XML_MESSAGE WHERE id = '4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9'",
-                Long::class.java)
-        assertThat(actual).isEqualTo(1)
+        assertThat(countRowsInTableWhere(jdbcClient, "INBOX_XML_MESSAGE", "id = '4bafe8fd-2086-4abb-a79f-47bbaa0aa4c9'")).isOne()
     }
 
     @Test
@@ -95,9 +93,7 @@ class SpringIntegrationInboundChannelEventualConsistencyTest(
             }
         }
 
-        val actual =
-            jdbcTemplate.queryForObject("SELECT COUNT(*) FROM INBOX_XML_MESSAGE", Long::class.java)
-        assertThat(actual).isEqualTo(0)
+        assertThat(countRowsInTable(jdbcClient, "INBOX_XML_MESSAGE")).isZero()
     }
 
     @EnableIntegration

@@ -12,6 +12,7 @@ import org.springframework.integration.dsl.integrationFlow
 import org.springframework.integration.jdbc.JdbcMessageHandler
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.test.context.TestConstructor
 import org.springframework.test.context.TestConstructor.AutowireMode.ALL
 import org.springframework.test.context.jdbc.Sql
@@ -20,7 +21,7 @@ import org.springframework.test.jdbc.JdbcTestUtils.countRowsInTableWhere
 @JdbcTest
 @TestConstructor(autowireMode = ALL)
 class SpringIntegrationJdbcIntTest(
-    val jdbcTemplate: JdbcTemplate,
+    val jdbcClient: JdbcClient,
     val messagingTemplate: MessagingTemplate
 ) {
     @Test
@@ -30,7 +31,7 @@ class SpringIntegrationJdbcIntTest(
 
         messagingTemplate.send(message)
 
-        assertThat(countRowsInTableWhere(jdbcTemplate, "message", "payload = 'hello'")).isEqualTo(1)
+        assertThat(countRowsInTableWhere(jdbcClient, "message", "payload = 'hello'")).isEqualTo(1)
     }
 
     @Test
@@ -45,7 +46,7 @@ class SpringIntegrationJdbcIntTest(
 
         messagingTemplate.send(sndMessage)
 
-        assertThat(countRowsInTableWhere(jdbcTemplate, "message", "payload = 'hello from jdbc'"))
+        assertThat(countRowsInTableWhere(jdbcClient, "message", "payload = 'hello from jdbc'"))
             .isEqualTo(1)
     }
 
@@ -63,13 +64,13 @@ class SpringIntegrationJdbcIntTest(
                     JdbcMessageHandler(
                         jdbcTemplate,
                         """
-                INSERT INTO message(id, messageId, payload)
-                VALUES (:headers[externalId], :headers[id], :payload)
-                ON CONFLICT (id) 
-                DO UPDATE SET
-                    messageId = EXCLUDED.messageId,
-                    payload = EXCLUDED.payload
-                """)) {
+                            INSERT INTO message(id, messageId, payload)
+                            VALUES (:headers[externalId], :headers[id], :payload)
+                            ON CONFLICT (id) 
+                            DO UPDATE SET
+                                messageId = EXCLUDED.messageId,
+                                payload = EXCLUDED.payload
+                        """)) {
                     id("jdbcHandler")
                 }
             }

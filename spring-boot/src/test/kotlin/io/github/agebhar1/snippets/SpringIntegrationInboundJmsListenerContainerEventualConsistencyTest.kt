@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.endpoint.AbstractEndpoint
-import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
 import org.springframework.jms.core.JmsTemplate
 import org.springframework.jms.listener.DefaultMessageListenerContainer
@@ -37,6 +37,7 @@ import org.springframework.test.context.TestConstructor
 import org.springframework.test.context.TestConstructor.AutowireMode.ALL
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
+import org.springframework.test.jdbc.JdbcTestUtils.countRowsInTable
 import org.springframework.transaction.annotation.Propagation.NEVER
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
@@ -125,7 +126,7 @@ class CustomJmsConsumer(
 class SpringIntegrationInboundJmsEventualConsistencyTest(
     private val consumer: CustomJmsConsumer,
     private val repositoryInterceptor: InboxXmlMessageRepositoryInterceptor,
-    private val jdbcTemplate: JdbcTemplate,
+    private val jdbcClient: JdbcClient,
     private val jmsTemplate: JmsTemplate,
     private val txTemplateInterceptor: TransactionTemplateInterceptor
 ) {
@@ -154,10 +155,7 @@ class SpringIntegrationInboundJmsEventualConsistencyTest(
 
         assertThat(latch.await(1000, MILLISECONDS)).isTrue
 
-        val actual =
-            jdbcTemplate.queryForObject(
-                "SELECT DISTINCT COUNT(*) FROM INBOX_XML_MESSAGE", Long::class.java)
-        assertThat(actual).isEqualTo(0)
+        assertThat(countRowsInTable(jdbcClient, "INBOX_XML_MESSAGE")).isZero()
 
         jmsTemplate.receiveTimeout = 250
         val message = jmsTemplate.receive("inbound.queue")
@@ -180,8 +178,7 @@ class SpringIntegrationInboundJmsEventualConsistencyTest(
 
         assertThat(latch.await(1000, MILLISECONDS)).isTrue
 
-        val actual = jdbcTemplate.queryForList("SELECT type FROM INBOX_XML_MESSAGE", String::class.java)
-        assertThat(actual).isEmpty()
+        assertThat(countRowsInTable(jdbcClient, "INBOX_XML_MESSAGE")).isZero()
 
         jmsTemplate.receiveTimeout = 250
         val message = jmsTemplate.receive("inbound.queue")
@@ -206,8 +203,7 @@ class SpringIntegrationInboundJmsEventualConsistencyTest(
 
         assertThat(latch.await(1000, MILLISECONDS)).isTrue
 
-        val actual = jdbcTemplate.queryForList("SELECT type FROM INBOX_XML_MESSAGE", String::class.java)
-        assertThat(actual).isEmpty()
+        assertThat(countRowsInTable(jdbcClient, "INBOX_XML_MESSAGE")).isZero()
 
         jmsTemplate.receiveTimeout = 250
         val message = jmsTemplate.receive("inbound.queue")
@@ -224,7 +220,7 @@ class SpringIntegrationInboundJmsEventualConsistencyTest(
 
         assertThat(latch.await(1000, MILLISECONDS)).isTrue
 
-        val actual = jdbcTemplate.queryForList("SELECT type FROM INBOX_XML_MESSAGE", String::class.java)
+        val actual = jdbcClient.sql("SELECT type FROM INBOX_XML_MESSAGE").query(String::class.java).list()
         assertThat(actual).containsExactlyInAnyOrder("a", "b")
 
         jmsTemplate.receiveTimeout = 250
@@ -247,7 +243,7 @@ class SpringIntegrationInboundJmsEventualConsistencyTest(
 
         assertThat(latch.await(1000, MILLISECONDS)).isTrue
 
-        val actual = jdbcTemplate.queryForList("SELECT type FROM INBOX_XML_MESSAGE", String::class.java)
+        val actual = jdbcClient.sql("SELECT type FROM INBOX_XML_MESSAGE").query(String::class.java).list()
         assertThat(actual).containsExactlyInAnyOrder("a", "b")
 
         jmsTemplate.receiveTimeout = 250

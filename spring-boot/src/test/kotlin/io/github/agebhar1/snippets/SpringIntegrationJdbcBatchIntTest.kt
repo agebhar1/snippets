@@ -12,6 +12,7 @@ import org.springframework.integration.dsl.integrationFlow
 import org.springframework.integration.jdbc.JdbcMessageHandler
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.test.context.TestConstructor
 import org.springframework.test.context.TestConstructor.AutowireMode.ALL
 import org.springframework.test.context.jdbc.Sql
@@ -21,7 +22,7 @@ import java.util.UUID.randomUUID
 @JdbcTest
 @TestConstructor(autowireMode = ALL)
 class SpringIntegrationJdbcBatchIntTest(
-    val jdbcTemplate: JdbcTemplate,
+    val jdbcClient: JdbcClient,
     val messagingTemplate: MessagingTemplate
 ) {
     @Test
@@ -37,7 +38,7 @@ class SpringIntegrationJdbcBatchIntTest(
 
         messagingTemplate.send(message)
 
-        assertThat(countRowsInTableWhere(jdbcTemplate, "message", "messageId = '$messageId'"))
+        assertThat(countRowsInTableWhere(jdbcClient, "message", "messageId = '$messageId'"))
             .isEqualTo(3)
     }
 
@@ -64,7 +65,7 @@ class SpringIntegrationJdbcBatchIntTest(
 
         assertThat(
             countRowsInTableWhere(
-                jdbcTemplate, "message", "payload IN ('message one', 'message two', 'message three')"))
+                jdbcClient, "message", "payload IN ('message one', 'message two', 'message three')"))
             .isEqualTo(3)
     }
 
@@ -82,13 +83,13 @@ class SpringIntegrationJdbcBatchIntTest(
                     JdbcMessageHandler(
                         jdbcTemplate,
                         """
-                  INSERT INTO message(id, messageId, payload)
-                  VALUES (:payload[0], :headers[messageId], :payload[1])
-                  ON CONFLICT (id)
-                  DO UPDATE SET
-                    messageId = EXCLUDED.messageId,
-                    payload = EXCLUDED.payload
-                  """)) {
+                            INSERT INTO message(id, messageId, payload)
+                            VALUES (:payload[0], :headers[messageId], :payload[1])
+                            ON CONFLICT (id)
+                            DO UPDATE SET
+                              messageId = EXCLUDED.messageId,
+                              payload = EXCLUDED.payload
+                        """.trimIndent())) {
                     id("jdbcHandler")
                 }
             }

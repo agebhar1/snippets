@@ -13,6 +13,7 @@ import org.springframework.integration.dsl.integrationFlow
 import org.springframework.integration.jdbc.JdbcMessageHandler
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
 import org.springframework.jdbc.support.xml.SqlXmlHandler
 import org.springframework.test.context.TestConstructor
@@ -27,7 +28,7 @@ import java.util.UUID
 @JdbcTest
 @TestConstructor(autowireMode = ALL)
 class SpringIntegrationJdbcXmlIntTest(
-    val jdbcTemplate: JdbcTemplate,
+    val jdbcClient: JdbcClient,
     val messagingTemplate: MessagingTemplate
 ) {
     @Test
@@ -42,17 +43,18 @@ class SpringIntegrationJdbcXmlIntTest(
         messagingTemplate.send(message)
 
         val exists =
-            jdbcTemplate.queryForList(
+            jdbcClient.sql(
                 """
-                SELECT id FROM INBOX_XML_MESSAGE
-                WHERE
-                    occurred_at_utc = timestamp '2022-05-07 10:10:38' AND
-                    processing_started_at_utc IS NULL AND
-                    processing_started_by IS NULL AND
-                    type = 'NONE' AND
-                    data IS DOCUMENT
-                """.trimIndent(),
-                UUID::class.java)
+                    SELECT id FROM INBOX_XML_MESSAGE
+                    WHERE
+                        occurred_at_utc = timestamp '2022-05-07 10:10:38' AND
+                        processing_started_at_utc IS NULL AND
+                        processing_started_by IS NULL AND
+                        type = 'NONE' AND
+                        data IS DOCUMENT
+                """.trimIndent())
+                .query(UUID::class.java)
+                .list()
 
         assertThat(exists).containsExactly(UUID.fromString("99f4ade3-f6d1-49df-a52f-977e35f9a2cd"))
     }

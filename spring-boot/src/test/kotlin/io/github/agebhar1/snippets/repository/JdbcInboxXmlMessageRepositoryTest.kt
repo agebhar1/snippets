@@ -6,7 +6,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.context.annotation.Import
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
+import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
 import org.springframework.test.context.TestConstructor
 import org.springframework.test.context.TestConstructor.AutowireMode.ALL
@@ -17,7 +17,7 @@ import java.util.UUID
 @JdbcTest
 @TestConstructor(autowireMode = ALL)
 class JdbcInboxXmlMessageRepositoryTest(
-    private val jdbcTemplate: NamedParameterJdbcTemplate,
+    private val jdbcClient: JdbcClient,
     private val repository: JdbcInboxXmlMessageRepository
 ) {
     @Test
@@ -32,7 +32,7 @@ class JdbcInboxXmlMessageRepositoryTest(
         repository.save(entity)
 
         val exists =
-            jdbcTemplate.queryForList(
+            jdbcClient.sql(
                 """
                     SELECT id FROM INBOX_XML_MESSAGE
                     WHERE
@@ -41,9 +41,9 @@ class JdbcInboxXmlMessageRepositoryTest(
                         processing_started_by IS NULL AND
                         type = 'NONE' AND
                         data IS DOCUMENT
-                """.trimIndent(),
-                emptyMap<String, Any>(),
-                UUID::class.java)
+                """.trimIndent())
+                .query(UUID::class.java)
+                .list()
 
         assertThat(exists).containsExactly(UUID.fromString("99f4ade3-f6d1-49df-a52f-977e35f9a2cd"))
     }
@@ -61,13 +61,14 @@ class JdbcInboxXmlMessageRepositoryTest(
         repository.save(entity)
         repository.deleteById(id)
 
-        val exists = jdbcTemplate.queryForObject(
+        val exists = jdbcClient.sql(
             """
                 SELECT count(*) = 1 FROM INBOX_XML_MESSAGE
                 WHERE id = :id
-            """.trimIndent(),
-            mapOf("id" to id),
-            Boolean::class.java)
+            """.trimIndent())
+            .param("id", id)
+            .query(Boolean::class.java)
+            .single()
         assertThat(exists).isFalse
     }
 }

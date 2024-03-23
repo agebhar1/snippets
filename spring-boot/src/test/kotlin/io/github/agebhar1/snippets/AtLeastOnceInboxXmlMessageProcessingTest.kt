@@ -18,14 +18,14 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.postgresql.jdbc.PgSQLXML
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
 import org.springframework.context.annotation.Import
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
+import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.jdbc.support.GeneratedKeyHolder
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler
 import org.springframework.test.context.TestConstructor
 import org.springframework.test.context.TestConstructor.AutowireMode.ALL
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
+import org.springframework.test.jdbc.JdbcTestUtils
 import org.springframework.transaction.annotation.Propagation.NEVER
 import org.springframework.transaction.annotation.Transactional
 import java.sql.Timestamp
@@ -52,7 +52,7 @@ import kotlin.time.Duration.Companion.seconds
 @TestConstructor(autowireMode = ALL)
 class AtLeastOnceInboxXmlMessageProcessingTest(
     private val clock: ModifiableFixedUTCClock,
-    private val jdbcTemplate: NamedParameterJdbcTemplate,
+    private val jdbcClient: JdbcClient,
     private val repository: JdbcInboxXmlMessageRepository
 ) {
     @ParameterizedTest
@@ -62,8 +62,8 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
         assertThat(count()).isEqualTo(10)
 
         assertThat(findAndTagUnprocessedOrExpiredMessages(limit = value, processorId = "worker-0")).hasSize(value)
-        assertThat(count(where = "processing_started_by = 'worker-0'")).isEqualTo(value)
-        assertThat(count(where = "processing_started_by IS NULL")).isEqualTo(10 - value)
+        assertThat(count(whereClause = "processing_started_by = 'worker-0'")).isEqualTo(value)
+        assertThat(count(whereClause = "processing_started_by IS NULL")).isEqualTo(10 - value)
     }
 
     @Test
@@ -80,7 +80,7 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
         clock += 5.seconds
 
         assertThat(findAndTagUnprocessedOrExpiredMessages(limit = 5, processorId = "worker-3")).hasSize(5)
-        assertThat(count(where = "processing_started_by IS NULL")).isZero
+        assertThat(count(whereClause = "processing_started_by IS NULL")).isZero
     }
 
     @Test
@@ -114,7 +114,7 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
         assertThat(count()).isEqualTo(15)
 
         assertThat(findAndTagUnprocessedOrExpiredMessages(limit = 10, processorId = "worker-3")).hasSize(10)
-        assertThat(count(where = "processing_started_by IS NULL")).isEqualTo(5)
+        assertThat(count(whereClause = "processing_started_by IS NULL")).isEqualTo(5)
     }
 
     @ParameterizedTest
@@ -124,8 +124,8 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
         assertThat(count()).isEqualTo(1)
 
         assertThat(findAndTagUnprocessedOrExpiredMessages(limit = value, processorId = "worker-0")).hasSize(1)
-        assertThat(count(where = "processing_started_by = 'worker-0'")).isOne
-        assertThat(count(where = "processing_started_by IS NULL")).isZero
+        assertThat(count(whereClause = "processing_started_by = 'worker-0'")).isOne
+        assertThat(count(whereClause = "processing_started_by IS NULL")).isZero
     }
 
     @Test
@@ -137,8 +137,8 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
         clock += 1.seconds
         assertThat(findAndTagUnprocessedOrExpiredMessages(limit = 5, processorId = "worker-0")).hasSize(5)
         
-        assertThat(count(where = "processing_started_by = 'worker-0'")).isEqualTo(10)
-        assertThat(count(where = "processing_started_by IS NULL")).isZero
+        assertThat(count(whereClause = "processing_started_by = 'worker-0'")).isEqualTo(10)
+        assertThat(count(whereClause = "processing_started_by IS NULL")).isZero
     }
 
     @Test
@@ -150,9 +150,9 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
         clock += 1.seconds
         assertThat(findAndTagUnprocessedOrExpiredMessages(limit = 5, processorId = "worker-1")).hasSize(5)
 
-        assertThat(count(where = "processing_started_by = 'worker-0'")).isEqualTo(5)
-        assertThat(count(where = "processing_started_by = 'worker-1'")).isEqualTo(5)
-        assertThat(count(where = "processing_started_by IS NULL")).isZero
+        assertThat(count(whereClause = "processing_started_by = 'worker-0'")).isEqualTo(5)
+        assertThat(count(whereClause = "processing_started_by = 'worker-1'")).isEqualTo(5)
+        assertThat(count(whereClause = "processing_started_by IS NULL")).isZero
     }
 
     @Test
@@ -220,34 +220,30 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
         val keys = GeneratedKeyHolder()
         val now = LocalDateTime.ofInstant(Instant.now(clock), UTC)
         // https://dba.stackexchange.com/a/69497
-        jdbcTemplate
-            .update(
-                """
-                    UPDATE INBOX_XML_MESSAGE
-                    SET processing_started_at_utc = :processingStartedAtUTC,
-                        processing_started_by = :processingStartedBy
-                    WHERE
-                        id IN (
-                            SELECT id
-                            FROM INBOX_XML_MESSAGE
-                            WHERE
-                                processing_started_at_utc IS NULL OR
-                                processing_started_at_utc < :expiresAfter
-                            ORDER BY occurred_at_utc
-                            LIMIT :limit
-                            FOR UPDATE SKIP LOCKED
-                        )
-                    RETURNING id, occurred_at_utc, type, data
-                """.trimIndent(),
-                MapSqlParameterSource(
-                    mapOf(
-                        "processingStartedAtUTC" to now,
-                        "processingStartedBy" to processorId,
-                        "expiresAfter" to now.minusNanos(ttl.inWholeNanoseconds),
-                        "limit" to limit
-                    )),
-                keys
-            )
+        jdbcClient.sql(
+            """
+                UPDATE INBOX_XML_MESSAGE
+                SET processing_started_at_utc = :processingStartedAtUTC,
+                    processing_started_by = :processingStartedBy
+                WHERE
+                    id IN (
+                        SELECT id
+                        FROM INBOX_XML_MESSAGE
+                        WHERE
+                            processing_started_at_utc IS NULL OR
+                            processing_started_at_utc < :expiresAfter
+                        ORDER BY occurred_at_utc
+                        LIMIT :limit
+                        FOR UPDATE SKIP LOCKED
+                    )
+                RETURNING id, occurred_at_utc, type, data
+            """.trimIndent())
+            .param("processingStartedAtUTC", now)
+            .param("processingStartedBy", processorId)
+            .param("expiresAfter", now.minusNanos(ttl.inWholeNanoseconds))
+            .param("limit", limit)
+            .update(keys)
+
         return keys.keyList
     }
 
@@ -265,12 +261,10 @@ class AtLeastOnceInboxXmlMessageProcessingTest(
         }
     }
 
-    private fun count(where: String? = null): Int =
-        jdbcTemplate
-            .queryForObject(
-                "SELECT Count(*) FROM INBOX_XML_MESSAGE ${(where?.let { "WHERE $where" } ?: "")}",
-                MapSqlParameterSource(),
-                Int::class.java) ?: -1
+    private fun count(whereClause: String? = null): Int =
+        whereClause?.let {
+            JdbcTestUtils.countRowsInTableWhere(jdbcClient, "INBOX_XML_MESSAGE", whereClause)
+        } ?: JdbcTestUtils.countRowsInTable(jdbcClient, "INBOX_XML_MESSAGE")
 
     class ModifiableFixedUTCClock(private var value: Instant = Instant.now()) : Clock() {
         override fun getZone(): ZoneOffset = UTC
