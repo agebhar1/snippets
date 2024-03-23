@@ -2,7 +2,7 @@
 
 ## Run Diktat or Spotless
 
-:heavy_exclamation_mark: If you are using **Java 16+**, you need to add `--add-opens java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED` flag to the JVM.
+:heavy_exclamation_mark: You need to add `--add-opens java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED` flag to the JVM.
 
 Either by
 ```
