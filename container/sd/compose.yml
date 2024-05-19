@@ -1,0 +1,36 @@
+---
+
+services:
+  nginx:
+    image: docker.io/nginx:1.25.5-alpine3.19
+    ports:
+      - 8080:80
+    volumes:
+      - ./etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - srv
+    restart: unless-stopped
+
+  srv:
+    build:
+      context: srv
+      dockerfile_inline: |
+        FROM docker.io/golang:1.22.3-alpine3.19 as builder
+
+        WORKDIR /usr/src/app
+
+        #COPY go.mod go.sum ./
+        #RUN go mod download && go mod verify
+
+        COPY go.mod main.go ./
+        RUN CGO_ENABLED=0 go build .
+
+        FROM scratch
+
+        WORKDIR /
+        COPY --from=builder /usr/src/app/srv /
+
+        EXPOSE 8090
+
+        CMD ["/srv"]
+    restart: unless-stopped

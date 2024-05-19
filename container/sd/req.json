@@ -1,0 +1,12 @@
+{
+  "AttachStdin": false,
+  "AttachStdout": true,
+  "AttachStderr": true,
+  "DetachKeys": "ctrl-p,ctrl-q",
+  "Tty": false,
+  "Cmd": [
+    "kill -SIGUSR1 1"
+  ],
+  "Env": [
+  ]
+}
