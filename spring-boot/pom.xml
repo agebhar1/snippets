@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
+        <version>3.2.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -23,6 +23,17 @@
         <!-- dependency version(s) -->
         <junit-pioneer.version>2.2.0</junit-pioneer.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- TODO remove if Spring Boot >= v3.2.6-->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jms</artifactId>
+                <version>6.1.5</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- scope: compile -->
