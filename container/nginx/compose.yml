@@ -1,0 +1,10 @@
+---
+services:
+  nginx:
+    image: docker.io/library/nginx:1.26.1-alpine3.19
+    ports:
+      - "8080:80"
+    volumes:
+      - ./etc/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./etc/nginx/njs:/etc/nginx/njs:ro
+      - ./etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
