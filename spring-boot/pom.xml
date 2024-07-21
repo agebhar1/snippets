@@ -22,7 +22,18 @@
         <diktat.version>1.2.5</diktat.version>
         <!-- dependency version(s) -->
         <junit-pioneer.version>2.2.0</junit-pioneer.version>
+        <wiremock-testcontainers-module.version>1.0-alpha-13</wiremock-testcontainers-module.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.wiremock.integrations.testcontainers</groupId>
+                <artifactId>wiremock-testcontainers-module</artifactId>
+                <version>${wiremock-testcontainers-module.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- scope: compile -->
@@ -57,6 +68,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.integration</groupId>
@@ -112,6 +127,11 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wiremock.integrations.testcontainers</groupId>
+            <artifactId>wiremock-testcontainers-module</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

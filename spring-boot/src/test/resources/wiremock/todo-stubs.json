@@ -1,0 +1,125 @@
+{
+  "mappings": [
+    {
+      "id": "ff4d49aa-5e41-42fe-8a65-79ceb56f6558",
+      "request": {
+        "urlPath": "/todos",
+        "method": "GET"
+      },
+      "response": {
+        "status": 200,
+        "jsonBody": [
+          {
+            "id": "199d25ae-42e2-4cc8-9a97-571a46e25689",
+            "title": "Item #1",
+            "completed": true
+          },
+          {
+            "id": "d2db635a-27e4-4a63-9d07-1a19aa52ace8",
+            "title": "Item #2",
+            "completed": false
+          },
+          {
+            "id": "dc800874-bad2-4aeb-ada6-ca8f7630c6a2",
+            "title": "Item #3",
+            "completed": false
+          }
+        ],
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "id": "44ba9592-01a7-4402-8cd1-04526b0e3d5f",
+      "request": {
+        "urlPath": "/todos/199d25ae-42e2-4cc8-9a97-571a46e25689",
+        "method": "GET"
+      },
+      "response": {
+        "status": 200,
+        "jsonBody": {
+          "id": "199d25ae-42e2-4cc8-9a97-571a46e25689",
+          "title": "Item #1",
+          "completed": true
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "id": "22f08c71-5d3f-4d37-bcc8-8f994942f79c",
+      "request": {
+        "urlPath": "/todos/d2db635a-27e4-4a63-9d07-1a19aa52ace8",
+        "method": "GET"
+      },
+      "response": {
+        "status": 200,
+        "jsonBody": {
+          "id": "d2db635a-27e4-4a63-9d07-1a19aa52ace8",
+          "title": "Item #2",
+          "completed": false
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "id": "0d464423-94f8-491b-969e-954aee74d35b",
+      "request": {
+        "urlPath": "/todos/dc800874-bad2-4aeb-ada6-ca8f7630c6a2",
+        "method": "GET"
+      },
+      "response": {
+        "status": 200,
+        "jsonBody": {
+          "id": "dc800874-bad2-4aeb-ada6-ca8f7630c6a2",
+          "title": "Item #3",
+          "completed": false
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "id": "e5a243d5-e5d4-4230-9784-8a301492e8c0",
+      "request": {
+        "urlPath": "/todos",
+        "method": "POST",
+        "bodyPatterns": [
+          {
+            "equalToJson": {
+              "id": "34c93fba-da84-45f6-921a-9ab6322d9ee0",
+              "title": "Item #4",
+              "completed": false
+            }
+          }
+        ]
+      },
+      "response": {
+        "status": 201,
+        "jsonBody": {
+          "id": "34c93fba-da84-45f6-921a-9ab6322d9ee0",
+          "title": "Item #4",
+          "completed": false
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "id": "17e883e8-9147-4483-8945-36105a0c1304",
+      "request": {
+        "urlPath": "/todos/199d25ae-42e2-4cc8-9a97-571a46e25689",
+        "method": "DELETE"
+      },
+      "response": {
+        "status": 204
+      }
+    }
+  ]
+}
