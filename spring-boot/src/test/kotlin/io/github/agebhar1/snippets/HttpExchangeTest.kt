@@ -97,7 +97,7 @@ class HttpExchangeTest(@Autowired private val client: ToDosService) {
         private val logger: Logger = LoggerFactory.getLogger(HttpExchangeTest::class.java)
 
         @Container
-        val wm: WireMockContainer = WireMockContainer("wiremock/wiremock:3.9.0-1")
+        val wm: WireMockContainer = WireMockContainer("wiremock/wiremock:3.9.1-1")
             .withLogConsumer(Slf4jLogConsumer(logger).withSeparateOutputStreams())
             .withMappingFromResource("todo", "wiremock/todo-stubs.json")
     }
