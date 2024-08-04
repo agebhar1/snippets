@@ -1,7 +1,35 @@
 {
   "mappings": [
     {
+      "id": "31b4072f-d674-4742-ad07-17822eab7e70",
+      "scenarioName": "GET /todos retryable",
+      "requiredScenarioState": "Started",
+      "newScenarioState": "failed#1",
+      "request": {
+        "urlPath": "/todos",
+        "method": "GET"
+      },
+      "response": {
+        "fault": "CONNECTION_RESET_BY_PEER"
+      }
+    },
+    {
+      "id": "ef561638-cc98-49b3-a191-8be8eba1b7bd",
+      "scenarioName": "GET /todos retryable",
+      "requiredScenarioState": "failed#1",
+      "newScenarioState": "success",
+      "request": {
+        "urlPath": "/todos",
+        "method": "GET"
+      },
+      "response": {
+        "fault": "MALFORMED_RESPONSE_CHUNK"
+      }
+    },
+    {
       "id": "ff4d49aa-5e41-42fe-8a65-79ceb56f6558",
+      "scenarioName": "GET /todos retryable",
+      "requiredScenarioState": "success",
       "request": {
         "urlPath": "/todos",
         "method": "GET"
@@ -85,7 +113,22 @@
       }
     },
     {
+      "id": "9a54599a-475a-4e23-a98b-32503d5dbf22",
+      "scenarioName": "POST /todos retryable",
+      "requiredScenarioState": "Started",
+      "newScenarioState": "success",
+      "request": {
+        "urlPath": "/todos",
+        "method": "POST"
+      },
+      "response": {
+        "status": 500
+      }
+    },
+    {
       "id": "e5a243d5-e5d4-4230-9784-8a301492e8c0",
+      "scenarioName": "POST /todos retryable",
+      "requiredScenarioState": "success",
       "request": {
         "urlPath": "/todos",
         "method": "POST",

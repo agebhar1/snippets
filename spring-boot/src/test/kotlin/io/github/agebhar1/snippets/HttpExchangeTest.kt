@@ -8,6 +8,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.EnableRetry
+import org.springframework.retry.annotation.Retryable
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
@@ -34,6 +37,7 @@ data class ToDo(
     accept = ["application/json"],
     contentType = "application/json"
 )
+@Retryable(backoff = Backoff(delay = 100, multiplier = 1.5, random = true))
 interface ToDosService {
     @GetExchange
     fun getAll(): List<ToDo>
@@ -81,6 +85,7 @@ class HttpExchangeTest(@Autowired private val client: ToDosService) {
     }
 
     @TestConfiguration
+    @EnableRetry
     class Configuration {
         @Bean
         fun client(): ToDosService {
