@@ -1,7 +1,7 @@
 ---
 spring:
   datasource:
-    url: jdbc:tc:postgresql:16.3:///
+    url: jdbc:tc:postgresql:17.0:///
   test:
     database:
       replace: none
