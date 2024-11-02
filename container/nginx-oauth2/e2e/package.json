@@ -1,0 +1,17 @@
+{
+  "type": "module",
+  "scripts": {
+    "eslint:config": "eslint --inspect-config",
+    "lint": "eslint *.config.js  tests/*.test.js",
+    "lint:fix": "npm run lint -- --fix",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.15.0",
+    "@stylistic/eslint-plugin": "2.10.1",
+    "@vitest/eslint-plugin": "1.1.10",
+    "eslint": "9.15.0",
+    "puppeteer": "23.8.0",
+    "vitest": "2.1.5"
+  }
+}
