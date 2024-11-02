@@ -1,0 +1,37 @@
+---
+name: OAuth2
+permissions: { }
+
+on:
+  push:
+    paths:
+      - 'oauth2/**'
+      - '.github/workflows/oauth2.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: oauth2/e2e/package-lock.json
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./oauth2/e2e
+      - name: Start containers
+        run: docker compose up -d
+        working-directory: ./oauth2
+      - name: Run e2e tests
+        run: npm run test
+        working-directory: ./oauth2/e2e
+      - name: Stop containers
+        if: always()
+        run: docker compose down -v
+        working-directory: ./oauth2
