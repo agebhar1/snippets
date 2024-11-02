@@ -1,6 +1,12 @@
+---
 version: 2
+
 updates:
   - package-ecosystem: maven
     directory: "/spring-boot"
+    schedule:
+      interval: daily
+  - package-ecosystem: npm
+    directory: "nginx/oauth2/e2e"
     schedule:
       interval: daily

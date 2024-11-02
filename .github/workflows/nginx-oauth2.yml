@@ -1,0 +1,40 @@
+---
+name: NGINX OAuth2
+permissions: { }
+
+on:
+  push:
+    paths:
+      - 'nginx/oauth2/**'
+      - '!nginx/oauth2/README.md'
+      - '!nginx/oauth2/assets/**'
+      - '.github/workflows/nginx-oauth2.ym'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+    working-directory: nginx/oauth2/e2e
+
+jobs:
+  e2e:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: nginx/oauth2/e2e/package-lock.json
+      - name: Install dependencies
+        run: npm install
+      - name: Start containers
+        run: docker compose up -d
+      - name: Run e2e tests
+        run: npm run test
+      - name: Stop containers
+        if: always()
+        run: docker compose down -v
