@@ -40,3 +40,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - run: mvn diktat:check --no-transfer-progress --file spring-boot/pom.xml
+  nginx-oauth2:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm --prefix container/nginx-oauth2/e2e install
+      - name: Start containers
+        run: docker-compose -f container/nginx-oauth2/compose.yml up -d
+      - name: Run e2e tests
+        run: npm --prefix container/nginx-oauth2/e2e run test
+      - name: Stop containers
+        if: always()
+        run: docker-compose -f container/nginx-oauth2/compose.yml down -v
