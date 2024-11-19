@@ -50,9 +50,9 @@ jobs:
       - name: Install dependencies
         run: npm --prefix container/nginx-oauth2/e2e install
       - name: Start containers
-        run: docker-compose -f container/nginx-oauth2/compose.yml up -d
+        run: docker compose -f container/nginx-oauth2/compose.yml up -d
       - name: Run e2e tests
         run: npm --prefix container/nginx-oauth2/e2e run test
       - name: Stop containers
         if: always()
-        run: docker-compose -f container/nginx-oauth2/compose.yml down -v
+        run: docker compose -f container/nginx-oauth2/compose.yml down -v
