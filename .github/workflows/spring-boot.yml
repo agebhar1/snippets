@@ -6,6 +6,7 @@ on:
   push:
     paths:
       - 'spring-boot/**'
+      - '!spring-boot/README.md'
       - '.github/workflows/spring-boot.yml'
 
 concurrency:
