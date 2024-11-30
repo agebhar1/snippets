@@ -1,8 +1,13 @@
 ---
-name: CI
-permissions: {}
+name: Spring Boot
+permissions: { }
 
-on: [ push ]
+on:
+  push:
+    paths:
+      - 'spring-boot/**'
+      - '.github/workflows/spring-boot.yml'
+
 jobs:
   build-java:
     runs-on: ubuntu-22.04
@@ -25,6 +30,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - run: mvn test --no-transfer-progress --file spring-boot/pom.xml -DargLine="-Dspring.datasource.url=jdbc:tc:postgresql:${{ matrix.pgDockerTag }}:///"
+
   diKTat:
     runs-on: ubuntu-22.04
     steps:
