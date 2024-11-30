@@ -27,12 +27,7 @@ jobs:
         with:
           distribution: ${{ matrix.javaDistribution }}
           java-version: ${{ matrix.javaVersion }}
-      - uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          cache: 'maven'
       - run: mvn test --no-transfer-progress --file spring-boot/pom.xml -DargLine="-Dspring.datasource.url=jdbc:tc:postgresql:${{ matrix.pgDockerTag }}:///"
 
   diKTat:
@@ -43,10 +38,5 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 11
-      - uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          cache: 'maven'
       - run: mvn diktat:check --no-transfer-progress --file spring-boot/pom.xml
