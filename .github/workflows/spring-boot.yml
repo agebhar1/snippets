@@ -29,7 +29,8 @@ jobs:
           distribution: ${{ matrix.javaDistribution }}
           java-version: ${{ matrix.javaVersion }}
           cache: 'maven'
-      - run: mvn test --no-transfer-progress --file spring-boot/pom.xml -DargLine="-Dspring.datasource.url=jdbc:tc:postgresql:${{ matrix.pgDockerTag }}:///"
+      - run: ./mvnw test --no-transfer-progress -DargLine="-Dspring.datasource.url=jdbc:tc:postgresql:${{ matrix.pgDockerTag }}:///"
+        working-directory: spring-boot
 
   diKTat:
     runs-on: ubuntu-22.04
@@ -40,4 +41,5 @@ jobs:
           distribution: 'temurin'
           java-version: 11
           cache: 'maven'
-      - run: mvn diktat:check --no-transfer-progress --file spring-boot/pom.xml
+      - run: ./mvnw diktat:check --no-transfer-progress
+        working-directory: spring-boot
