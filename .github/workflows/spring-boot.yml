@@ -8,6 +8,10 @@ on:
       - 'spring-boot/**'
       - '.github/workflows/spring-boot.yml'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-java:
     runs-on: ubuntu-22.04
