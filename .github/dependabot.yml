@@ -8,9 +8,14 @@ updates:
       interval: weekly
       day: saturday
       time: "05:00"
+    commit-message:
+      prefix: chore
+
   - package-ecosystem: npm
     directory: "nginx/oauth2/e2e"
     schedule:
       interval: weekly
       day: saturday
       time: "05:00"
+    commit-message:
+      prefix: chore
