@@ -175,4 +175,15 @@ Commercial support is available at nginx.com.
 
 Thank you for using nginx.`)
   })
+
+  it('introspect authenticated user', async () => {
+    const response = await page.goto('http://localhost:8080/me')
+    const data = await response.json()
+
+    expect(data).toEqual({
+      email: 'admin@example.com',
+      preferred_username: 'admin@example.com',
+      sub: '3356c0a0-d4d5-4436-9c5a-2299c71c08ec',
+    })
+  })
 })
