@@ -136,15 +136,18 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await stopTrace()
+
+  const client = await page.target().createCDPSession()
+  await client.send('Network.clearBrowserCache')
+  await client.send('Network.clearBrowserCookies')
+
   page.close()
   page = null
   events = null
 })
 
 describe('NGINX', () => {
-  it('protects resource by Keycloak (OAuth2)', async () => {
-    await page.goto('http://localhost:8080/')
-
+  async function loginWithKeycloak() {
     const login = await page.waitForSelector('#kc-login')
     expect(login).not.toBeNull()
 
@@ -158,15 +161,23 @@ describe('NGINX', () => {
     await password.type('password')
     await login.click()
 
-    await page.waitForNavigation()
+    return page.waitForNavigation()
+  }
 
-    await writeTrace('oauth2.har')
+  describe('ngx_http_auth_request_module', () => {
+    describe('auth_request', () => {
+      it('protects resource by Keycloak (OAuth2)', async () => {
+        await page.goto('http://localhost:8080/')
 
-    expect(page.url()).toStrictEqual('http://localhost:8080/')
+        await loginWithKeycloak()
 
-    const text = await page.$eval('body', el => el.innerText)
-    expect(text).toStrictEqual(
-      `Welcome to nginx!
+        await writeTrace('oauth2.har')
+
+        expect(page.url()).toStrictEqual('http://localhost:8080/')
+
+        const text = await page.$eval('body', el => el.innerText)
+        expect(text).toStrictEqual(
+          `Welcome to nginx!
 
 If you see this page, the nginx web server is successfully installed and working. Further configuration is required.
 
@@ -174,5 +185,22 @@ For online documentation and support please refer to nginx.org.
 Commercial support is available at nginx.com.
 
 Thank you for using nginx.`)
+      })
+    })
+
+    describe('auth_request_set', () => {
+      it('provide authorization response header "X-Auth-Request-Access-Token" to request variable', async () => {
+        await page.goto('http://localhost:8080/userinfo/access-token')
+
+        const response = await loginWithKeycloak()
+        const data = await response.json()
+
+        expect(data).toEqual({
+          email: 'admin@example.com',
+          preferred_username: 'admin@example.com',
+          sub: '3356c0a0-d4d5-4436-9c5a-2299c71c08ec',
+        })
+      })
+    })
   })
 })
