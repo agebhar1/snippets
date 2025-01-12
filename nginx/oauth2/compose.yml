@@ -4,6 +4,8 @@ services:
     image: docker.io/library/nginx:1.26.2-alpine3.20
     volumes:
       - ./etc/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./etc/nginx/njs:/etc/nginx/njs:ro
+      - ./etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "8080:80/tcp"
     restart: unless-stopped
@@ -48,6 +50,9 @@ services:
       # OAUTH2_PROXY_COOKIE_DOMAINS:
       OAUTH2_PROXY_COOKIE_SECRET: "wenKY5NUBWSLO8CRh1a81K7I-sqROgoAfEpbXCKhtfI="
       OAUTH2_PROXY_COOKIE_SECURE: "false"
+      # https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview#header-options
+      OAUTH2_PROXY_PASS_ACCESS_TOKEN: "true"
+      OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
       # https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview/#proxy-options
       OAUTH2_PROXY_EMAIL_DOMAINS: "*"
       OAUTH2_PROXY_REDIRECT_URL: "http://localhost:8080/oauth2/callback"
