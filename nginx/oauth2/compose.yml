@@ -52,6 +52,7 @@ services:
       OAUTH2_PROXY_COOKIE_SECURE: "false"
       # https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview#header-options
       OAUTH2_PROXY_PASS_ACCESS_TOKEN: "true"
+      OAUTH2_PROXY_SET_AUTHORIZATION_HEADER: "true"
       OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
       # https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview/#proxy-options
       OAUTH2_PROXY_EMAIL_DOMAINS: "*"

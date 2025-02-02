@@ -201,6 +201,19 @@ Thank you for using nginx.`)
           sub: '3356c0a0-d4d5-4436-9c5a-2299c71c08ec',
         })
       })
+
+      it('provide authorization response header "Authorization: Bearer …" to upstream request', async () => {
+        await page.goto('http://localhost:8080/userinfo/authorization-bearer')
+
+        const response = await loginWithKeycloak()
+        const data = await response.json()
+
+        expect(data).toEqual({
+          email: 'admin@example.com',
+          preferred_username: 'admin@example.com',
+          sub: '3356c0a0-d4d5-4436-9c5a-2299c71c08ec',
+        })
+      })
     })
   })
 })

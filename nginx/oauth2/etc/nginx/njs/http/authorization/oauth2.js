@@ -34,6 +34,22 @@ function userInfoFromAccessToken(r) {
   }));
 }
 
+/**
+ * @param {NginxHTTPRequest} r
+ * */
+function userInfoFromAuthorizationBearer(r) {
+  const payload = jwt(r.headersIn['Authorization'].replace(/Bearer /i, "")).payload;
+
+  r.headersOut['Content-Type'] = 'application/json';
+  return r.return(200, JSON.stringify({
+    // https://www.iana.org/assignments/jwt/jwt.xhtml
+    sub: payload.sub,
+    preferred_username: payload.preferred_username,
+    email: payload.email
+  }));
+}
+
 export default {
-  userInfoFromAccessToken
+  userInfoFromAccessToken,
+  userInfoFromAuthorizationBearer
 }
