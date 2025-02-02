@@ -20,6 +20,20 @@ defaults:
     working-directory: nginx/oauth2/e2e
 
 jobs:
+  lint:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: nginx/oauth2/e2e/package-lock.json
+      - name: Install dependencies
+        run: npm install
+      - name: Lint
+        run: npm run lint
+
   e2e:
     runs-on: ubuntu-22.04
     steps:
