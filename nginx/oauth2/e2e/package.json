@@ -9,7 +9,7 @@
   "devDependencies": {
     "@eslint/js": "9.19.0",
     "@stylistic/eslint-plugin": "3.0.1",
-    "@vitest/eslint-plugin": "1.1.25",
+    "@vitest/eslint-plugin": "1.1.26",
     "chrome-har": "1.0.1",
     "eslint": "9.19.0",
     "puppeteer": "24.1.1",
