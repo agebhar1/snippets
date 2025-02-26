@@ -1,7 +1,7 @@
 ---
 services:
   nginx:
-    image: docker.io/library/nginx:1.26.2-alpine3.20
+    image: docker.io/library/nginx:1.26.3-alpine3.20
     volumes:
       - ./etc/nginx/conf.d:/etc/nginx/conf.d:ro
       - ./etc/nginx/njs:/etc/nginx/njs:ro
