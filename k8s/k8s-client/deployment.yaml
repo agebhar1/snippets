@@ -1,0 +1,35 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-deployment
+  labels:
+    app: demo
+spec:
+  selector:
+    matchLabels:
+      app: demo
+  template:
+    metadata:
+      labels:
+        app: demo
+    spec:
+      containers:
+        - name: demo
+          image: 10.101.30.31/demo:latest
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: demo-svc
+#  labels:
+#    app: demo
+#spec:
+#  selector:
+#    app: demo
+#  ports:
+#    - port: 8080
+#      targetPort: 8080
