@@ -22,7 +22,7 @@
         <diktat.version>1.2.5</diktat.version>
         <!-- dependency version(s) -->
         <junit-pioneer.version>2.3.0</junit-pioneer.version>
-        <wiremock-testcontainers-module.version>1.0-alpha-14</wiremock-testcontainers-module.version>
+        <wiremock-testcontainers-module.version>1.0-alpha-15</wiremock-testcontainers-module.version>
     </properties>
 
     <dependencyManagement>
