@@ -1,0 +1,11 @@
+---
+services:
+  nginx:
+    image: docker.io/library/nginx:1.26.3-alpine3.20
+    volumes:
+      - ./etc/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./etc/nginx/ssl:/etc/nginx/ssl:ro
+    ports:
+      #- "8080:80/tcp"
+      - "8443:443/tcp"
+    restart: unless-stopped
