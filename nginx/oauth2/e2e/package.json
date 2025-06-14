@@ -12,7 +12,7 @@
     "@vitest/eslint-plugin": "1.2.5",
     "chrome-har": "1.0.1",
     "eslint": "9.29.0",
-    "puppeteer": "24.10.0",
+    "puppeteer": "24.10.1",
     "vitest": "3.2.3"
   }
 }
