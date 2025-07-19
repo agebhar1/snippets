@@ -1,0 +1,15 @@
+---
+apiVersion: 1
+
+deleteDatasource:
+  - name: Jaeger
+
+datasources:
+  # https://grafana.com/docs/grafana/latest/datasources/jaeger/
+  - name: Jaeger
+    type: jaeger
+    uid: aeshavwp5b9xce
+    url: http://jaeger:16686
+    jsonData:
+      nodeGraph:
+        enabled: true
