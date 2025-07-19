@@ -1,0 +1,20 @@
+--- venv.orig/lib/python3.12/site-packages/opentelemetry/instrumentation/confluent_kafka/__init__.py	2026-10-18 09:35:42.212170170 +0200
++++ venv/lib/python3.12/site-packages/opentelemetry/instrumentation/confluent_kafka/__init__.py	2026-10-17 15:20:35.264000000 +0200
+@@ -118,6 +118,7 @@
+     _end_current_consume_span,
+     _enrich_span,
+     _get_span_name,
++    _kafka_getter,
+     _kafka_setter,
+ )
+ from .version import __version__
+@@ -384,7 +385,8 @@
+         record = func(*args, **kwargs)
+         if record:
+             bootstrap_servers = KafkaPropertiesExtractor.extract_bootstrap_servers(instance)
+-            with tracer.start_as_current_span("recv", end_on_exit=True, kind=trace.SpanKind.CONSUMER):
++            ctx = propagate.extract(carrier=record.headers(), getter=_kafka_getter)
++            with tracer.start_as_current_span("recv", context=ctx, end_on_exit=True, kind=trace.SpanKind.CONSUMER):
+                 _create_new_consume_span(instance, tracer, [record])
+                 _enrich_span(
+                     instance._current_consume_span,

@@ -1,0 +1,14 @@
+aiohttp
+anyio
+confluent_kafka
+fastapi[standard]
+opentelemetry-api
+opentelemetry-distro
+#opentelemetry-exporter-otlp
+opentelemetry-exporter-otlp-proto-http
+opentelemetry-instrumentation-aiohttp-client
+opentelemetry-instrumentation-confluent-kafka
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-threading
+opentelemetry-sdk
+uvicorn[standard]

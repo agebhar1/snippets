@@ -1,0 +1,123 @@
+```shell
+python3 -m venv venv
+. venv/bin/activate
+pip3 install -r requirements
+patch -p0 < opentelemetry-confluent_kafka.patch
+# opentelemetry-bootstrap -a requirements
+# opentelemetry-bootstrap -a install
+podman compose up --detach
+open http://localhost:3000
+```
+
+```shell
+#export OTEL_PYTHON_LOG_CORRELATION=true
+#export OTEL_PYTHON_LOG_FORMAT="%(msg)s [span_id=%(span_id)s]"
+#export OTEL_PYTHON_LOG_LEVEL=debug
+#export OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/ # OpenTelemetry Collector
+opentelemetry-instrument --traces_exporter console,otlp --logs_exporter none --metrics_exporter none --service_name app python3 server.py
+```
+
+```shell
+curl http://localhost:8000/
+```
+
+```text
+INFO:     Started server process [97739]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:38406 - "GET / HTTP/1.1" 200 OK
+```
+
+![Grafana Explore Tempo Trace](traceId-bcf0e32707b367466f9cff766701a450.png)
+
+```shell
+#export OTEL_PYTHON_LOG_CORRELATION=true
+#export OTEL_PYTHON_LOG_FORMAT="%(msg)s [span_id=%(span_id)s]"
+#export OTEL_PYTHON_LOG_LEVEL=debug
+#export OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
+export OTEL_SERVICE_NAME=app
+export OTEL_TRACES_EXPORTER=console,otlp
+export OTEL_LOGS_EXPORTER=none
+export OTEL_METRICS_EXPORTER=none
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/ # OpenTelemetry Collector
+python3 consume.py
+```
+
+![Grafana Explore Tempo Trace](traceId-558ce7335495e9a3091d275bed583348.png)
+
+## Links
+
+### 3rd Party
+
+* https://docs.honeycomb.io/send-data/python/opentelemetry-sdk
+* https://docs.middleware.io/apm-configuration/python/manual-instrumentation
+* https://last9.io/blog/opentelemetry-python-instrumentation/
+
+### Blogs
+
+* https://signoz.io/blog/opentelemetry-fastapi/
+* https://signoz.io/comparisons/opentelemetry-trace-id-vs-span-id/
+* https://last9.io/blog/integrating-opentelemetry-with-fastapi/
+* https://medium.com/@lakinduboteju/integrating-opentelemetry-for-logging-in-python-a-practical-guide-fe52bff61edc
+* https://medium.com/@juanluis1702/deploying-jaeger-prometheus-and-grafana-with-docker-compose-87d3bd499bbe
+* https://www.infracloud.io/blogs/tracing-grafana-tempo-jaeger/
+* https://oneuptime.com/blog/post/2026-02-06-build-first-custom-span-opentelemetry/view
+* https://medium.com/better-programming/using-decorators-to-instrument-python-code-with-opentelemetry-traces-d7f1c7d6f632
+* https://futureagi.com/blog/python-decorator-tracing-llm-2026/
+* https://www.patreon.com/engineering/posts/how-to-use-async-124658443
+* https://oneuptime.com/blog/post/2026-02-06-propagate-trace-context-kafka-producers-consumers/view
+
+### OpenTelemetry
+
+* [Logging Library SDK Prototype Specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.47.0/oteps/logs/0150-logging-library-sdk.md)
+* [Overview](https://opentelemetry.io/docs/specs/otel/overview/)
+* [Logs Data Model](https://opentelemetry.io/docs/specs/otel/logs/data-model/)
+
+#### Collector
+
+* [Configuration](https://opentelemetry.io/docs/collector/configuration/)
+* [Gateway](https://opentelemetry.io/docs/collector/deployment/gateway/)
+* [Resiliency](https://opentelemetry.io/docs/collector/resiliency/)
+
+#### Language APIs & SDKs
+
+* https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/
+* https://opentelemetry.io/docs/zero-code/python/configuration/
+* https://opentelemetry.io/docs/zero-code/python/troubleshooting/#connectivity-issues
+* https://opentelemetry-python.readthedocs.io/en/latest/api/index.html
+
+#### GitHub (Python)
+
+* https://github.com/open-telemetry/opentelemetry-python/tree/main/docs/examples/auto-instrumentation
+
+### OpenTelemetry-Python-Contrib
+
+```shell
+pip install opentelemetry-exporter-{exporter}
+pip install opentelemetry-instrumentation-{instrumentation}
+pip install opentelemetry-sdk-extension-{sdk-extension}
+```
+
+#### Instrumentation
+
+* [Confluent Kafka](https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/confluent_kafka/confluent_kafka.html)
+* [FastAPI](https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/fastapi/fastapi.html)
+* [Logging](https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/logging/logging.html)
+* [SQLAlchemy](https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/sqlalchemy/sqlalchemy.html)
+* [Threading](https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/threading/threading.html)
+
+### Logging
+
+* https://docs.python.org/3/howto/logging-cookbook.html
+  * [Implementing structured logging](https://docs.python.org/3/howto/logging-cookbook.html#implementing-structured-logging)
+* [WatchedFileHandler](https://docs.python.org/3/library/logging.handlers.html#watchedfilehandler)
+* https://signoz.io/guides/how-to-write-to-a-file-using-the-logging-python-module/
+
+### Kafka
+
+* https://docs.confluent.io/platform/current/clients/confluent-kafka-python
+* https://docs.confluent.io/kafka-clients/python/current/overview.html#
