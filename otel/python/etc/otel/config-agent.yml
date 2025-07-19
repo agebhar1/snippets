@@ -1,0 +1,47 @@
+---
+# See https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/security-best-practices.md#safeguards-against-denial-of-service-attacks
+
+extensions:
+  health_check:
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+
+exporters:
+  debug:
+    verbosity: detailed
+  otlp:
+    endpoint: otel:4317
+    tls:
+      insecure: true
+
+service:
+  extensions: [ health_check ]
+  pipelines:
+    traces/jaeger:
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ debug,otlp ]
+
+    traces/tempo:
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ debug,otlp ]
+
+    metrics:
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ debug,otlp ]
+
+    logs:
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ debug,otlp ]

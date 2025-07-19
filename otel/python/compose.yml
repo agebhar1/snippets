@@ -1,0 +1,42 @@
+---
+name: otel
+
+services:
+  grafana:
+    image: grafana/grafana:12.2.1
+    volumes:
+      - ./etc/grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      # [security]
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: s3cr3t
+    ports:
+      - "3000:3000"
+
+  otel:
+    image: otel/opentelemetry-collector-contrib:0.139.0
+    volumes:
+      - ./etc/otel/config.yml:/etc/otelcol-contrib/config.yaml:ro
+
+  agent:
+    image: otel/opentelemetry-collector-contrib:0.139.0
+    volumes:
+      - ./etc/otel/config-agent.yml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - "4317:4317" # OTLP collector grpc
+      - "4318:4318" # OTLP collector http
+
+  jaeger:
+    image: jaegertracing/jaeger:2.11.0
+    ports:
+      - "16686:16686" # query serve frontend (Jaeger UI)
+    environment:
+      - LOG_LEVEL=debug
+
+  tempo:
+    image: grafana/tempo:2.9.0
+    volumes:
+      - ./etc/tempo/config.yml:/etc/tempo.yml:ro
+    command:
+      - -config.file
+      - /etc/tempo.yml
