@@ -1,0 +1,10 @@
+---
+services:
+  jaeger:
+    image: ${REGISTRY:-}jaegertracing/jaeger:${JAEGER_VERSION:-latest}
+    ports:
+      - "16686:16686" # query serve frontend (Jaeger UI)
+      - "4317:4317" # OTLP collector grpc
+      - "4318:4318" # OTLP collector http
+    environment:
+      - LOG_LEVEL=debug
