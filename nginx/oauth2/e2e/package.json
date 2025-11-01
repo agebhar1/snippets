@@ -13,6 +13,6 @@
     "chrome-har": "1.1.1",
     "eslint": "9.39.0",
     "puppeteer": "24.27.0",
-    "vitest": "4.0.3"
+    "vitest": "4.0.6"
   }
 }
