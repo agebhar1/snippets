@@ -4,7 +4,7 @@ import io.github.agebhar1.snippets.domain.InboxXmlMessage
 import io.github.agebhar1.snippets.toDocument
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
+import org.springframework.boot.jdbc.test.autoconfigure.JdbcTest
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.jdbc.support.xml.Jdbc4SqlXmlHandler

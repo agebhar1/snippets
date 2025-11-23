@@ -5,7 +5,7 @@ package io.github.agebhar1.snippets
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest
+import org.springframework.boot.jdbc.test.autoconfigure.JdbcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.event.EventListener
@@ -30,19 +30,18 @@ import javax.sql.DataSource
 @TestConstructor(autowireMode = ALL)
 class SpringIntegrationLeaderElectionTest(
     val leaderInitiator: LockRegistryLeaderInitiator,
-    val lockRegistry: LockRegistry,
+    val lockRegistry: LockRegistry<*>,
     val singleResource: SingleResource
 ) {
     /*
         http://presos.dsyer.com/decks/locks-and-leaders.html
-        https://docs.spring.io/spring-integration/docs/current/reference/html/jdbc.html#jdbc-lock-registry
+        https://docs.spring.io/spring-integration/reference/jdbc/lock-registry.html
         https://github.com/spring-projects/spring-integration/blob/main/spring-integration-jdbc/src/test/java/org/springframework/integration/jdbc/leader/JdbcLockRegistryLeaderInitiatorTests.java
      */
 
     @AfterEach
     fun reset() {
         leaderInitiator.stop()
-        leaderInitiator.setLeaderEventPublisher(null)
     }
 
     @Test
@@ -65,25 +64,25 @@ class SpringIntegrationLeaderElectionTest(
 
         leaderInitiator.setLeaderEventPublisher(object : LeaderEventPublisher {
             override fun publishOnGranted(
-                source: Any?,
-                context: Context?,
-                role: String?
+                source: Any,
+                context: Context,
+                role: String
             ) {
                 granted.countDown()
             }
 
             override fun publishOnRevoked(
-                source: Any?,
-                context: Context?,
-                role: String?
+                source: Any,
+                context: Context,
+                role: String
             ) {
                 revoked.countDown()
             }
 
             override fun publishOnFailedToAcquire(
-                source: Any?,
-                context: Context?,
-                role: String?
+                source: Any,
+                context: Context,
+                role: String
             ) {
             }
         })
@@ -153,13 +152,14 @@ class SpringIntegrationLeaderElectionTest(
         @Bean
         fun lockRepository(dataSource: DataSource) = DefaultLockRepository(dataSource, "IdOne").apply {
             setRegion("RegionOne")
+            insertQuery = "$insertQuery ON CONFLICT DO NOTHING"
         }
 
         @Bean
         fun lockRegistry(client: LockRepository) = JdbcLockRegistry(client)
 
         @Bean
-        fun leaderInitiator(lockRegistry: LockRegistry) = LockRegistryLeaderInitiator(lockRegistry).apply {
+        fun leaderInitiator(lockRegistry: LockRegistry<*>) = LockRegistryLeaderInitiator(lockRegistry).apply {
             setHeartBeatMillis(1000)
         }
 
