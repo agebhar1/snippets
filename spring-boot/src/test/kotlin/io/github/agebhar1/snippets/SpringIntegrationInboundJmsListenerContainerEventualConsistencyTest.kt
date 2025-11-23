@@ -106,6 +106,8 @@ class CustomJmsConsumer(
         super.setAutoStartup(autoStartup)
         messageListenerContainer.isAutoStartup = autoStartup
     }
+
+    override fun getComponentType() = "jms-consumer"
 }
 
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)

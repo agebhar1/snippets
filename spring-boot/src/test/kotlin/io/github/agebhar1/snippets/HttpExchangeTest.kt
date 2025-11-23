@@ -8,9 +8,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
-import org.springframework.retry.annotation.Backoff
-import org.springframework.retry.annotation.EnableRetry
-import org.springframework.retry.annotation.Retryable
+import org.springframework.resilience.annotation.EnableResilientMethods
+import org.springframework.resilience.annotation.Retryable
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.web.bind.annotation.PathVariable
@@ -39,10 +38,8 @@ data class ToDo(
     contentType = "application/json"
 )
 @Retryable(
-    backoff = Backoff(
-        delayExpression = "\${ToDosService.@Retryable.backoff.delay:2000}",
-        multiplier = 1.5,
-        random = true)
+        delayString = $$"${ToDosService.@Retryable.delay:2000}",
+        multiplier = 1.5
 )
 interface ToDosService {
     @GetExchange
@@ -60,7 +57,7 @@ interface ToDosService {
 
 @ExtendWith(SpringExtension::class)
 @Testcontainers
-@TestPropertySource(properties = ["ToDosService.@Retryable.backoff.delay=100"])
+@TestPropertySource(properties = ["ToDosService.@Retryable.delay=100"])
 class HttpExchangeTest(@Autowired private val client: ToDosService) {
     @Test
     fun `(service) client should get all ToDo items`() {
@@ -92,7 +89,7 @@ class HttpExchangeTest(@Autowired private val client: ToDosService) {
     }
 
     @TestConfiguration
-    @EnableRetry
+    @EnableResilientMethods
     class Configuration {
         @Bean
         fun client(): ToDosService {

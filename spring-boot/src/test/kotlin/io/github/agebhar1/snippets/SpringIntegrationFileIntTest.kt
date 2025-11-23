@@ -13,16 +13,14 @@ import org.springframework.integration.dsl.MessageChannels
 import org.springframework.integration.dsl.PollerFactory.fixedRate
 import org.springframework.integration.dsl.StandardIntegrationFlow
 import org.springframework.integration.dsl.integrationFlow
-import org.springframework.integration.file.FileReadingMessageSource.WatchEventType.CREATE
 import org.springframework.integration.file.dsl.FileInboundChannelAdapterSpec
 import org.springframework.integration.file.dsl.Files.inboundAdapter
 import org.springframework.integration.file.dsl.Files.toStringTransformer
+import org.springframework.integration.file.inbound.FileReadingMessageSource.WatchEventType.CREATE
 import org.springframework.test.context.junit.jupiter.SpringExtension
-
 import java.nio.file.Path
 import java.time.Duration.ofSeconds
 import java.util.Locale
-
 import kotlin.io.path.div
 import kotlin.io.path.moveTo
 import kotlin.io.path.writeText
