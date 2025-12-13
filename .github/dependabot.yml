@@ -10,7 +10,9 @@ updates:
       prefix: chore
 
   - package-ecosystem: maven
-    directory: "/spring-boot"
+    directories:
+      - "/spring-boot"
+      - "/quarkus/all-in-one"
     schedule:
       interval: weekly
       day: saturday

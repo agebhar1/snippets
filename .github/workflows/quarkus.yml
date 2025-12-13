@@ -1,0 +1,33 @@
+---
+name: Quarkus
+permissions: { }
+
+on:
+  push:
+    paths:
+      - 'quarkus/**'
+      - '!quarkus/**/README.md'
+      - '.github/workflows/quarkus.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-java:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        javaVersion: [ "21", "25" ]
+        javaDistribution: [ "temurin", "zulu" ]
+        pgDockerTag: [ "18.1", "17.7", "16.11", "15.15", "14.20" ]
+    name: Java ${{ matrix.javaVersion }}-${{ matrix.javaDistribution }} w/ PostgreSQL ${{ matrix.pgDockerTag }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: ${{ matrix.javaDistribution }}
+          java-version: ${{ matrix.javaVersion }}
+          cache: 'maven'
+      - run: ./mvnw test --no-transfer-progress -DargLine="-Dquarkus.datasource.devservices.image-name=docker.io/library/postgres:${{ matrix.pgDockerTag }}"
+        working-directory: quarkus/all-in-one
