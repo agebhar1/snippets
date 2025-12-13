@@ -47,6 +47,12 @@ jobs:
         with:
           working-directory: spring-boot
 
+      - if: matrix.language == 'java-kotlin'
+        name: Java/Kotlin (${{ matrix.build-mode }}) - Quarkus
+        uses: github/codeql-action/autobuild@v4
+        with:
+          working-directory: quarkus/all-in-one
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
