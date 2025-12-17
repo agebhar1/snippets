@@ -1,0 +1,39 @@
+---
+name: quarkus
+
+services:
+  grafana:
+    image: grafana/grafana:12.3.1
+    volumes:
+      - ./etc/grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      # [security]
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: true
+    ports:
+      - "3000:3000"
+
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.142.0
+    volumes:
+      - ./etc/otel/collector.yml:/etc/otelcol-contrib/config.yaml:ro
+
+  agent:
+    image: otel/opentelemetry-collector-contrib:0.142.0
+    volumes:
+      - ./etc/otel/agent.yml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+
+  tempo:
+    image: grafana/tempo:2.9.0
+    volumes:
+      - ./etc/tempo/config.yml:/etc/tempo.yml:ro
+    command:
+      - -config.file
+      - /etc/tempo.yml
+    ports: [ ]
+    #  - "3200:3200"
+
