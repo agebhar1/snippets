@@ -25,6 +25,7 @@
         <logging-json.version>3.5.0</logging-json.version>
         <logging-manager.version>3.4.2</logging-manager.version>
         <nullaway.version>0.13.7</nullaway.version>
+        <opentelemetry-javaagent.version>2.29.0</opentelemetry-javaagent.version>
         <resteasy-problem.version>3.32.1</resteasy-problem.version>
     </properties>
 
@@ -226,6 +227,30 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.11.0</version>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>io.opentelemetry.javaagent</groupId>
+                                    <artifactId>opentelemetry-javaagent</artifactId>
+                                    <version>${opentelemetry-javaagent.version}</version>
+                                </artifactItem>
+                            </artifactItems>
+                            <stripVersion>true</stripVersion>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>

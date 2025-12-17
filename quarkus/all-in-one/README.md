@@ -7,7 +7,8 @@ A Quarkus REST Microservices with (✓ Done, ✗ TODO):
     * error handling w/ [RFC 9457 Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457.html) ✓
 * Persistence:
     * Hibernate ORM w/ Panache Repository ✓
-    * use [JPA Field Access](https://jakarta.ee/specifications/persistence/3.2/jakarta-persistence-spec-3.2#a113) first (do not clutter source code with unnecessary getter/setter) ✓
+    * use [JPA Field Access](https://jakarta.ee/specifications/persistence/3.2/jakarta-persistence-spec-3.2#a113)
+      first (do not clutter source code with unnecessary getter/setter) ✓
     * database schema management w/ [Flyway](https://github.com/flyway/flyway) ✓
     * using RFC 9562 Universally Unique
       IDentifiers [UUIDv7](https://www.rfc-editor.org/rfc/rfc9562.html#name-uuid-version-7) as primary key in
@@ -34,16 +35,61 @@ A Quarkus REST Microservices with (✓ Done, ✗ TODO):
 ### Development
 
 ```shell
+docker compose up --detach
+```
+
+```shell
 mvn quarkus:dev
 ```
 
-Open Quarkus Dev UI at http://localhost:8080/q/dev-ui.
+Open Quarkus Dev UI at http://localhost:8080/q/dev-ui and Grafana at http://localhost:3000.
+
+```shell
+curl --silent http://localhost:8080/fruits --header 'Content-Type: application/json' -d '{ "name": "Orange", "description": "Winter fruit" }'
+curl --silent http://localhost:8080/fruits | jq .
+# [
+#   {
+#     "id": "019f0995-aaa7-70f5-84a5-c998a06a3c4d",
+#     "version": 1,
+#     "name": "Orange",
+#     "description": "Winter fruit",
+#     "metadata": {
+#       "createdAt": "2026-06-27T14:57:11.348883Z",
+#       "updatedAt": "2026-06-27T14:57:11.348898Z"
+#     }
+#   }
+# ]
+curl --silent http://localhost:8080/fruits/$(curl --silent http://localhost:8080/fruits | jq --raw-output .[0].id) | jq .
+# {
+#   "id": "019f0995-aaa7-70f5-84a5-c998a06a3c4d",
+#   "version": 1,
+#   "name": "Orange",
+#   "description": "Winter fruit",
+#   "metadata": {
+#     "createdAt": "2026-06-27T14:57:11.348883Z",
+#     "updatedAt": "2026-06-27T14:57:11.348898Z"
+#   }
+# }
+curl --silent -XDELETE http://localhost:8080/fruits/$(curl --silent http://localhost:8080/fruits | jq --raw-output .[0].id)
+```
 
 ### Testing
 
 ```shell
 # export GRAALVM_HOME=~/.sdkman/candidates/java/21-graalce/
 mvn clean verify [-Dnative]
+```
+
+### Container Deployment
+
+```shell
+mvn clean package -Dquarkus.package.jar.type=fast-jar -DskipTests
+docker compose --profile '*' up --build --detach
+docker compose logs -f service
+# >>>> Executing external compose provider "/home/agebhar1/bin/docker-compose". Please refer to the documentation for details. <<<<
+#
+# service-1  | INFO exec -a "java" java -Dhttp.nonProxyHosts=agent -cp "." -jar /deployments/quarkus-run.jar 
+# service-1  | INFO running in /deployments
 ```
 
 ### Observability
@@ -53,6 +99,43 @@ mvn clean verify [-Dnative]
 > The use of **the [OpenTelemetry Agent](https://opentelemetry.io/docs/zero-code/java/agent/) is not needed nor
 recommended**. Quarkus Extensions and the libraries they provide,
 > are directly instrumented. That agent doesn’t work with native mode.
+
+#### OpenTelemetry Agent
+
+```shell
+patch -p3 << EOF
+diff --git a/quarkus/all-in-one/compose.yml b/quarkus/all-in-one/compose.yml
+index e07069b..95eaef5 100644
+--- a/quarkus/all-in-one/compose.yml
++++ b/quarkus/all-in-one/compose.yml
+@@ -172,7 +172,7 @@ services:
+       # -= OpenTelemetry =-
+       # https://opentelemetry.io/docs/zero-code/java/agent/getting-started/
+       JAVA_OPTS: "-Dhttp.nonProxyHosts=agent"
+-      # JAVA_TOOL_OPTIONS: "-javaagent:/deployments/opentelemetry-javaagent.jar"
++      JAVA_TOOL_OPTIONS: "-javaagent:/deployments/opentelemetry-javaagent.jar"
+       # https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
+       # https://opentelemetry.io/docs/specs/otel/protocol/exporter/
+       OTEL_EXPORTER_OTLP_ENDPOINT: "http://agent:4317/"
+diff --git a/quarkus/all-in-one/src/main/resources/application.properties b/quarkus/all-in-one/src/main/resources/application.properties
+index b64354b..2122e43 100644
+--- a/quarkus/all-in-one/src/main/resources/application.properties
++++ b/quarkus/all-in-one/src/main/resources/application.properties
+@@ -10,7 +10,7 @@ quarkus.hibernate-orm.jdbc.timezone=UTC
+ quarkus.datasource.devservices.image-name=docker.io/library/postgres:18.4
+ 
+ # https://quarkus.io/guides/opentelemetry
+-#quarkus.otel.enabled=false
++quarkus.otel.enabled=false
+ # build time property: otlp,cdi,none,logging
+ #quarkus.otel.traces.exporter=cdi
+
+EOF
+
+mvn clean package -Dquarkus.package.jar.type=fast-jar -DskipTests
+docker compose --profile '*' up --build --detach
+docker compose logs -f service
+```
 
 Screenshot of Explore » Tempo in Grafana after running test(s):
 ![PUT Trace Screenshot](README.md.d/grafana-explore-tempo.png "PUT Trace")
@@ -79,18 +162,20 @@ Screenshot of Explore » Tempo in Grafana after running test(s):
 * [SmallRye Health](https://quarkus.io/guides/smallrye-health)
 * [Observability in Quarkus](https://quarkus.io/guides/observability)
 * [Using OpenTelemetry](https://quarkus.io/guides/opentelemetry)
+    * [Using OpenTelemetry Tracing](https://quarkus.io/guides/opentelemetry-tracing)
     * [Resource](https://quarkus.io/guides/opentelemetry#resource)
-    * [OpenTelemetry Resource Providers](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/resources/library/README.md#opentelemetry-resource-providers)
 * [Testing Your Application](https://quarkus.io/guides/getting-started-testing)
 * [Dev Services Overview](https://quarkus.io/guides/dev-services)
     * [Compose Dev Services](https://quarkus.io/guides/compose-dev-services)
     * [Dev Services for Databases](https://quarkus.io/guides/databases-dev-services)
 * [Building a Native Executable](https://quarkus.io/guides/building-native-image)
     * [Build a Statically Linked or Mostly-Statically Linked Native Executable](https://www.graalvm.org/jdk21/reference-manual/native-image/guides/build-static-executables)
+* [Configuration Reference Guide](https://quarkus.io/guides/config-reference)
 
 ### Quarkus Blog
 
 * [Explore a new way of testing CDI components in Quarkus](https://quarkus.io/blog/quarkus-component-test/)
+* [Observability in Quarkus 3](https://quarkus.io/blog/quarkus-observability-3-3/)
 
 ### Quarkiverse
 
@@ -123,6 +208,13 @@ Screenshot of Explore » Tempo in Grafana after running test(s):
 * [Time Zones Don’t Have to Be a Nightmare: Handling Dates Properly with Quarkus and Hibernate Panache](https://www.the-main-thread.com/p/quarkus-java-timezone-best-practices)
 * [Small and Efficient Containers: Quarkus + Jib + Mandrel for Lightning-Fast Java Apps](https://www.the-main-thread.com/p/quarkus-jib-mandrel-native-containers)
 * [RFC 9457 Explained: The New Error Handling Standard for Java/Quarkus (vs RFC 7807)](https://www.the-main-thread.com/p/quarkus-rfc9457-api-error-handling)
+* [The Distributed Dragon Forge: A Hands-On OpenTelemetry Adventure with Quarkus](https://www.the-main-thread.com/p/quarkus-opentelemetry-microservices-tracing)
+
+### OpenTelemetry
+
+* [Java Agent](https://opentelemetry.io/docs/zero-code/java/agent/)
+* [Quarkus instrumentation](https://opentelemetry.io/docs/zero-code/java/quarkus/)
+* [OpenTelemetry Resource Providers](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/resources/library/README.md#opentelemetry-resource-providers)
 
 ### Others
 

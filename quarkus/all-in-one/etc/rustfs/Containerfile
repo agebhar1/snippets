@@ -1,0 +1,16 @@
+FROM ${BASE_IMAGE}
+
+ARG BASE_IMAGE
+ARG RUSTFS_CLI_VERSION
+
+RUN apk add bash curl tar && \
+  addgroup -S rustfs && adduser -S rustfs -G rustfs
+
+USER rustfs
+WORKDIR /home/rustfs
+ENV PATH="$PATH:~/.local/bin"
+
+RUN mkdir -p ~/.local/bin/ && \
+  curl -L --silent https://github.com/rustfs/cli/releases/download/${RUSTFS_CLI_VERSION}/rustfs-cli-linux-amd64-${RUSTFS_CLI_VERSION}.tar.gz | tar --directory ~/.local/bin/ -xzf -
+
+CMD /bin/bash
