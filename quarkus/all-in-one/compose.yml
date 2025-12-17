@@ -1,0 +1,167 @@
+---
+name: quarkus
+
+services:
+  postgres:
+    image: ${CONTAINER_REGISTRY:-}postgres:18.4
+    environment:
+      POSTGRES_USER: quarkus
+      POSTGRES_PASSWORD: quarkus
+      POSTGRES_DB: quarkus
+    ports: [ ]
+    # - "5432:5432"
+    labels:
+      io.github.agebhar1.project: quarkus
+
+  grafana:
+    image: ${CONTAINER_REGISTRY:-}grafana/grafana:13.0.2
+    volumes:
+      - ./etc/grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      NO_PROXY: loki,tempo
+      # [security]
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: true
+    ports:
+      - "127.0.0.1:3000:3000"
+    labels:
+      io.github.agebhar1.project: quarkus
+
+  collector:
+    image: ${CONTAINER_REGISTRY:-}otel/opentelemetry-collector-contrib:0.154.0
+    volumes:
+      - ./etc/otel/collector.yml:/etc/otelcol-contrib/config.yaml:ro
+    environment:
+      NO_PROXY: tempo
+    labels:
+      io.github.agebhar1.project: quarkus
+
+  agent:
+    image: ${CONTAINER_REGISTRY:-}otel/opentelemetry-collector-contrib:0.154.0
+    volumes:
+      - ./etc/otel/agent.yml:/etc/otelcol-contrib/config.yaml:ro
+    environment:
+      NO_PROXY: collector
+    ports: [ ]
+    # - "127.0.0.1:4317:4317" # OTLP gRPC
+    # - "127.0.0.1:4318:4318" # OTLP HTTP
+    labels:
+      io.github.agebhar1.project: quarkus
+
+  loki:
+    image: ${CONTAINER_REGISTRY:-}grafana/loki:2.9.17
+    volumes:
+      - ./etc/loki/config.yml:/etc/loki/config.yml:ro
+      - volume-loki:/var/lib/loki
+    command:
+      - -config.file=/etc/loki/config.yml
+      - -log.level=${LOKI_LOG_LEVEL:-info}
+    ports: [ ]
+    # - "127.0.0.1:3100:3100"
+    restart: unless-stopped
+    labels:
+      io.github.agebhar1.project: quarkus
+
+  #  promtail:
+  #    image: grafana/promtail:2.9.17
+  #    volumes:
+  #      - ./etc/promtail/config.yml:/etc/promtail/config.yml:ro
+  #      - /var/run/docker.sock:/var/run/docker.sock
+  #      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+  #      - volume-promtail:/var/lib/promtail
+  #    environment:
+  #      NO_PROXY: loki
+  #    ports: [ ]
+  #    # - "127.0.0.1:9080:9080"
+  #    labels:
+  #      io.github.agebhar1.project: quarkus
+
+  tempo:
+    image: ${CONTAINER_REGISTRY:-}grafana/tempo:2.10.7
+    volumes:
+      - ./etc/tempo/config.yml:/etc/tempo.yml:ro
+      - volume-tempo:/var/tempo:rw
+    command:
+      - -config.file
+      - /etc/tempo.yml
+    ports: [ ]
+    #  - "127.0.0.1:3200:3200"
+    labels:
+      io.github.agebhar1.project: quarkus
+
+  rustfs:
+    image: ${CONTAINER_REGISTRY:-}rustfs/rustfs:1.0.0-beta.8-glibc
+    volumes:
+      - volume-rustfs:/data
+    environment:
+      RUSTFS_ACCESS_KEY: rustfsadmin
+      RUSTFS_SECRET_KEY: rustfsadmin
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    restart: unless-stopped
+    labels:
+      io.github.agebhar1.project: quarkus
+
+  setup:
+    profiles:
+      - with-setup
+    build:
+      context: etc/rustfs
+      dockerfile: Containerfile
+      # inline dockerfile is not supported w/ Podman
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -eu
+        
+        while ! rc alias set local http://rustfs:9000 rustfsadmin rustfsadmin; do
+          sleep 1
+        done
+
+        # -= Loki =-
+        rc admin user add local loki lokis3cr3t
+        rc admin policy attach local readwrite --user loki
+        rc bucket create --with-lock local/loki
+        rc bucket lifecycle rule add local/loki --expiry-days 30
+
+        # -= Tempo -=
+        rc admin user add local tempo tempos3cr3t
+        rc admin policy attach local readwrite --user tempo
+        rc bucket create --with-lock local/tempo
+        rc bucket lifecycle rule add local/tempo --expiry-days 30
+
+  service:
+    # mvn clean package -Dquarkus.package.jar.type=fast-jar -DskipTests
+    # mvn dependency:copy -Dmdep.stripVersion=true -Dartifact=io.opentelemetry.javaagent:opentelemetry-javaagent:2.27.0
+    # curl http://localhost:8080/fruits --header 'Content-Type: application/json' -d '{ "name": "Orange", "description": "Winter fruit" }'
+    build:
+      dockerfile: src/main/docker/Dockerfile.jvm
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      # https://quarkus.io/guides/datasource#datasource-reference
+      QUARKUS_DATASOURCE_USERNAME: quarkus
+      QUARKUS_DATASOURCE_PASSWORD: quarkus
+      QUARKUS_DATASOURCE_JDBC_URL: "jdbc:postgresql://postgres:5432/quarkus"
+      # https://quarkus.io/guides/opentelemetry#configuration-reference
+      QUARKUS_OTEL_EXPORTER_OTLP_ENDPOINT: "http://agent:4317/"
+      # =- OpenTelemetry =-
+      # https://opentelemetry.io/docs/zero-code/java/agent/getting-started/
+      JAVA_OPTS: "-Dhttp.nonProxyHosts=agent"
+      # JAVA_TOOL_OPTIONS: "-javaagent:/deployments/opentelemetry-javaagent.jar"
+      # https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
+      # https://opentelemetry.io/docs/specs/otel/protocol/exporter/
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://agent:4317/"
+      OTEL_EXPORTER_OTLP_INSECURE: true
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+    labels:
+      io.github.agebhar1.project: quarkus
+
+volumes:
+  volume-loki:
+  volume-promtail:
+  volume-tempo:
+  volume-rustfs:

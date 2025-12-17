@@ -1,0 +1,13 @@
+FROM ${CONTAINER_REGISTRY:-}alpine:3.24.0
+
+RUN apk add bash curl tar && \
+  addgroup -S rustfs && adduser -S rustfs -G rustfs
+
+USER rustfs
+WORKDIR /home/rustfs
+ENV PATH="$PATH:~/.local/bin"
+
+RUN mkdir -p ~/.local/bin/ && \
+  curl -L --silent https://github.com/rustfs/cli/releases/download/v0.1.21/rustfs-cli-linux-amd64-v0.1.21.tar.gz | tar --directory ~/.local/bin/ -xzf -
+
+CMD /bin/bash
