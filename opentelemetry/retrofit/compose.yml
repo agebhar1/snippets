@@ -1,0 +1,71 @@
+---
+name: retrofit
+
+services:
+  grafana:
+    profiles:
+      - grafana
+    image: ${CONTAINER_REGISTRY:-}grafana/grafana:13.2.1
+    volumes:
+      - ./etc/grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      NO_PROXY: tempo
+      # [security]
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: true
+    ports:
+      - "127.0.0.1:3000:3000"
+
+  tempo:
+    image: ${CONTAINER_REGISTRY:-}grafana/tempo:2.10.8
+    volumes:
+      - ./etc/tempo/config.yml:/etc/tempo.yml:ro
+    command:
+      - -config.file
+      - /etc/tempo.yml
+    ports: [ ]
+    #  - "127.0.0.1:3200:3200"
+    #  - "127.0.0.1:4317:4317" # OTLP gRPC
+    #  - "127.0.0.1:4318:4318" # OTLP HTTP
+
+  socat:
+    image: ${CONTAINER_REGISTRY:-docker.io/}alpine/socat:1.8.1.3
+    ports: [ ]
+    #  - "127.0.0.1:4318:4318" # OTLP HTTP
+    command:
+      - -v
+      - -d
+      - TCP-LISTEN:4318,bind=0.0.0.0,fork
+      - TCP:tempo:4318
+
+  gateway:
+    build:
+      context: gateway
+      dockerfile: Containerfile
+      args:
+        BUILD_IMAGE: ${CONTAINER_REGISTRY:-docker.io/}golang:1.27.0-alpine3.24
+        RUN_IMAGE: ${CONTAINER_REGISTRY:-gcr.io}/distroless/static-debian13
+    volumes:
+      - sockets:/tmp:rw
+    environment:
+      # https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://socat:4318/
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_EXPORTER_OTLP_INSECURE: true
+      # https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
+      OTEL_BSP_SCHEDULE_DELAY: 500
+      OTEL_BSP_MAX_QUEUE_SIZE: 1
+
+  middleware:
+    build:
+      context: middleware
+      dockerfile: Containerfile
+      args:
+        BASE_IMAGE: ${CONTAINER_REGISTRY:-}alpine:3.24.1
+    volumes:
+      - sockets:/tmp:rw
+    command: server
+
+volumes:
+  sockets:

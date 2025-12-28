@@ -1,0 +1,77 @@
+---
+name: OpenTelemetry Retrofit E2E
+permissions: { }
+
+on:
+  push:
+    paths:
+      - 'opentelemetry/retrofit/**'
+      - '!opentelemetry/retrofit/README.md'
+      - '.github/workflows/retrofit.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+    working-directory: 'opentelemetry/retrofit'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v2
+        with:
+          version: v5.3.1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: 'opentelemetry/retrofit/e2e'
+      - name: Install dependencies
+        run: npm install
+        working-directory: 'opentelemetry/retrofit/e2e'
+
+      # https://stackoverflow.com/questions/9966111/run-a-script-piped-from-stdin-linux-shell-scripting
+      # cat .github/workflows/retrofit.yml | yq .jobs.e2e.steps[2].run | bash
+      - name: Start containers
+        run: |
+          docker compose up --quiet-pull --detach --build
+          
+          while ! docker compose exec --no-tty middleware curl --silent --fail http://tempo:3200/ready; do
+            sleep 1
+          done
+          
+          docker compose exec --detach --env OTEL_SERVICE_NAME=clientTwo middleware client -r one -w two
+          docker compose exec --detach --env OTEL_SERVICE_NAME=clientThree middleware client -r two -w three -d 1
+          # echo a | docker compose exec --no-tty --env OTEL_SERVICE_NAME=clientOne middleware client -w one
+          
+          # docker compose logs gateway middleware
+          
+          # podman compose exec middleware curl --silent --fail http://tempo:3200/api/search
+          # podman compose exec middleware curl --silent --fail http://tempo:3200/api/traces/...
+
+      - name: Run e2e tests
+        run: npm run test
+        working-directory: 'opentelemetry/retrofit/e2e'
+
+      - name: Run Valgrind (memcheck)
+        run: |
+          docker compose exec middleware bash -c 'seq 100 | OTEL_SERVICE_NAME=clientOne valgrind --tool=memcheck --leak-check=full --verbose --error-exitcode=255 client -w q$RANDOM'
+
+      - name: Run Valgrind (helgrind)
+        run: |
+          docker compose exec middleware bash -c 'seq 100 | OTEL_SERVICE_NAME=clientOne valgrind --tool=helgrind --verbose --error-exitcode=255 client -w q$RANDOM || true'
+
+      - name: Run Valgrind (drd)
+        run: |
+          docker compose exec middleware bash -c 'seq 100 | OTEL_SERVICE_NAME=clientOne valgrind --tool=drd --verbose --error-exitcode=255 client -w q$RANDOM || true'
+
+      # cat .github/workflows/retrofit.yml | yq .jobs.e2e.steps[3].run | bash
+      - name: Stop containers
+        run: docker compose down --volumes
+        if: always()
