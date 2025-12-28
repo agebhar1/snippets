@@ -1,0 +1,36 @@
+ARG CONTAINER_REGISTRY=docker.io/
+FROM ${CONTAINER_REGISTRY}library/ubuntu:26.04 AS base
+
+ARG OTEL_UID=1001
+ARG OTEL_GID=1001
+
+#    apt upgrade -y && \
+RUN apt update && \
+    apt install --yes adduser curl libasan8 libtsan2 libubsan1 valgrind && \
+    addgroup --gid ${OTEL_GID} otel && adduser --uid ${OTEL_UID} --ingroup otel --disabled-password --disabled-login --gecos "" otel && \
+    apt remove --yes --purge adduser && \
+    apt clean
+
+FROM base AS build
+
+RUN apt install --yes cmake gcc g++ make libssl-dev
+
+USER otel
+WORKDIR /home/otel
+
+COPY . .
+
+ARG CMAKE_BUILD_TYPE=release
+
+RUN cmake -S . -B ubuntu -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} && \
+    cmake --build ubuntu --clean-first
+
+FROM base
+
+COPY --from=build /home/otel/ubuntu/client /usr/bin/
+COPY --from=build /home/otel/ubuntu/libmiddleware.so /usr/lib/
+COPY --from=build /home/otel/ubuntu/producer /usr/bin/
+COPY --from=build /home/otel/ubuntu/server /usr/bin/
+
+USER otel
+WORKDIR /home/otel

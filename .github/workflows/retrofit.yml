@@ -1,0 +1,139 @@
+---
+name: OpenTelemetry Retrofit E2E
+permissions: { }
+
+on:
+  push:
+    paths:
+      - 'opentelemetry/retrofit/**'
+      - '!opentelemetry/retrofit/README.md'
+      - '.github/workflows/retrofit.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+    working-directory: 'opentelemetry/retrofit'
+
+env:
+  DOCKER_COMPOSE: v5.5.1
+
+jobs:
+  e2e:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v2
+        with:
+          version: ${{ env.DOCKER_COMPOSE }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: 'opentelemetry/retrofit/e2e'
+      - name: Install dependencies
+        run: npm install
+        working-directory: 'opentelemetry/retrofit/e2e'
+
+      # https://stackoverflow.com/questions/9966111/run-a-script-piped-from-stdin-linux-shell-scripting
+      # yq '.jobs.e2e.steps[] | select(.id == "docker-compose-up") | .run' < ../../.github/workflows/retrofit.yml | bash
+      - name: Build/Start Containers
+        id: docker-compose-up
+        run: |
+          docker compose up --quiet-pull --detach --build
+          
+          while ! docker compose exec --no-tty middleware curl --silent --fail http://tempo:3200/ready; do
+            sleep 1
+          done
+          
+          docker compose exec --detach --env OTEL_SERVICE_NAME=clientTwo middleware client -r one -w two
+          docker compose exec --detach --env OTEL_SERVICE_NAME=clientThree middleware client -r two -w three -d 1
+          # echo a | docker compose exec --no-tty --env OTEL_SERVICE_NAME=clientOne middleware client -w one
+          # docker compose exec middleware bash -c 'seq 2 | OTEL_SERVICE_NAME=clientOne client -w one'
+          
+          # docker compose logs gateway middleware
+          
+          # podman compose exec middleware curl --silent --fail http://tempo:3200/api/search
+          # podman compose exec middleware curl --silent --fail http://tempo:3200/api/traces/...
+
+      - name: Run E2E Tests
+        run: npm run test
+        working-directory: 'opentelemetry/retrofit/e2e'
+
+      - name: Stop containers
+        run: docker compose down --volumes
+        if: always()
+
+  sanitize:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        container: [ 'alpine', 'ubuntu' ]
+        buildType: [ 'ASan', 'TSan', 'UBSan' ]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v2
+        with:
+          version: ${{ env.DOCKER_COMPOSE }}
+
+      - name: Build/Start Containers
+        env:
+          CONTAINER_IMAGE: ${{ matrix.container }}
+          CMAKE_BUILD_TYPE: ${{ matrix.buildType }}
+        run: |
+          docker compose up --quiet-pull --detach --build
+          
+          while ! docker compose exec --no-tty middleware curl --silent --fail http://tempo:3200/ready; do
+            sleep 1
+          done
+
+      - name: Run on '${{ matrix.container }}' with sanitizer '${{ matrix.buildType }}'
+        run: |
+          docker compose exec middleware bash -c 'seq 100 | OTEL_SERVICE_NAME=clientOne client -w q$RANDOM'
+
+      - name: Stop containers
+        run: docker compose down --volumes
+        if: always()
+
+  valgrind:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        container: [ 'alpine', 'ubuntu' ]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v2
+        with:
+          version: ${{ env.DOCKER_COMPOSE }}
+
+      - name: Build/Start Containers
+        env:
+          CONTAINER_IMAGE: ${{ matrix.container }}
+        run: |
+          docker compose up --quiet-pull --detach --build
+
+          while ! docker compose exec --no-tty middleware curl --silent --fail http://tempo:3200/ready; do
+            sleep 1
+          done
+
+      - name: Run Valgrind (memcheck)
+        run: |
+          docker compose exec middleware bash -c 'seq 100 | OTEL_SERVICE_NAME=clientOne valgrind --tool=memcheck --leak-check=full --verbose --error-exitcode=255 client -w q$RANDOM'
+
+      - name: Run Valgrind (helgrind)
+        run: |
+          docker compose exec middleware bash -c 'seq 100 | OTEL_SERVICE_NAME=clientOne valgrind --tool=helgrind --verbose --error-exitcode=255 client -w q$RANDOM || true'
+
+      - name: Run Valgrind (drd)
+        run: |
+          docker compose exec middleware bash -c 'seq 100 | OTEL_SERVICE_NAME=clientOne valgrind --tool=drd --verbose --error-exitcode=255 client -w q$RANDOM'
+
+      - name: Stop containers
+        run: docker compose down --volumes
+        if: always()

@@ -1,0 +1,47 @@
+ARG CONTAINER_REGISTRY=''
+FROM ${CONTAINER_REGISTRY}alpine:3.24.1 AS base
+
+ARG OTEL_UID=1001
+ARG OTEL_GID=1001
+
+RUN apk add --no-cache bash curl openssl valgrind && \
+    addgroup -g ${OTEL_GID} -S otel && adduser -u ${OTEL_UID} -S otel -G otel
+
+FROM base AS build
+
+RUN apk add --no-cache cmake gcc g++ make openssl-dev
+
+USER otel
+WORKDIR /home/otel
+
+COPY . .
+
+ARG CMAKE_BUILD_TYPE=release
+
+RUN cmake -S . -B alpine -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} && \
+    cmake --build alpine --clean-first
+
+FROM base
+
+COPY --from=build /usr/lib/libgcc_s.so.1 /usr/lib/
+COPY --from=build "/usr/lib/libstdc++.so.6.0.34" /usr/lib/
+COPY --from=build /usr/lib/libasan.so.8.0.0 /usr/lib/
+COPY --from=build /usr/lib/libtsan.so.2.0.0 /usr/lib/
+COPY --from=build /usr/lib/libubsan.so.1.0.0 /usr/lib/
+COPY --from=build /home/otel/alpine/client /usr/bin/
+COPY --from=build /home/otel/alpine/libmiddleware.so /usr/lib/
+COPY --from=build /home/otel/alpine/producer /usr/bin/
+COPY --from=build /home/otel/alpine/server /usr/bin/
+
+RUN ln -s /usr/lib/libgcc_s.so.1 /usr/lib/libgcc_s.so && \
+    ln -s /usr/lib/libstdc++.so.6.0.34 /usr/lib/libstdc++.so.6 && \
+    ln -s /usr/lib/libstdc++.so.6 /usr/lib/libstdc++.so && \
+    ln -s /usr/lib/libasan.so.8.0.0 /usr/lib/libasan.so.8 && \
+    ln -s /usr/lib/libasan.so.8 /usr/lib/libasan.so && \
+    ln -s /usr/lib/libtsan.so.2.0.0 /usr/lib/libtsan.so.2 && \
+    ln -s /usr/lib/libtsan.so.2 /usr/lib/libtsan.so && \
+    ln -s /usr/lib/libubsan.so.1.0.0 /usr/lib/libubsan.so.1 && \
+    ln -s /usr/lib/libubsan.so.1 /usr/lib/libubsan.so
+
+USER otel
+WORKDIR /home/otel
