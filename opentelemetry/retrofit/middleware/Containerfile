@@ -1,0 +1,28 @@
+FROM ${BASE_IMAGE} AS base
+
+ARG BASE_IMAGE
+
+RUN apk add bash openssl && \
+    addgroup -S otel && adduser -S otel -G otel
+
+FROM base AS build
+
+RUN apk add cmake gcc g++ make openssl-dev
+
+USER otel
+WORKDIR /home/otel
+
+COPY . .
+
+RUN cmake -S . -B alpine && \
+    cmake --build alpine --clean-first
+
+FROM base
+
+COPY --from=build /home/otel/alpine/client /usr/bin/
+COPY --from=build /home/otel/alpine/libmiddleware.so /usr/lib/
+COPY --from=build /home/otel/alpine/producer /usr/bin/
+COPY --from=build /home/otel/alpine/server /usr/bin/
+
+USER otel
+WORKDIR /home/otel

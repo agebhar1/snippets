@@ -1,0 +1,72 @@
+---
+x-image:
+  opentelemetry-collector-contrib: &opentelemetry-collector-contrib ${CONTAINER_REGISTRY:-}otel/opentelemetry-collector-contrib:0.156.0
+
+name: retrofit
+
+services:
+  grafana:
+    image: ${CONTAINER_REGISTRY:-}grafana/grafana:13.1.0
+    volumes:
+      - ./etc/grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      NO_PROXY: tempo
+      # [security]
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: true
+    ports:
+      - "127.0.0.1:3000:3000"
+
+  collector:
+    image: *opentelemetry-collector-contrib
+    volumes:
+      - ./etc/otel/collector.yml:/etc/otelcol-contrib/config.yaml:ro
+    environment:
+      NO_PROXY: tempo
+
+  agent:
+    image: *opentelemetry-collector-contrib
+    volumes:
+      - ./etc/otel/agent.yml:/etc/otelcol-contrib/config.yaml:ro
+    environment:
+      NO_PROXY: collector
+    ports:
+      - "127.0.0.1:4317:4317" # OTLP gRPC
+      - "127.0.0.1:4318:4318" # OTLP HTTP
+
+  tempo:
+    image: ${CONTAINER_REGISTRY:-}grafana/tempo:2.10.7
+    volumes:
+      - ./etc/tempo/config.yml:/etc/tempo.yml:ro
+    command:
+      - -config.file
+      - /etc/tempo.yml
+    ports: [ ]
+    #  - "127.0.0.1:3200:3200"
+
+  gateway:
+    build:
+      context: gateway
+      dockerfile: Containerfile
+      args:
+        BUILD_IMAGE: ${CONTAINER_REGISTRY:-docker.io/}golang:1.26.5-alpine3.24
+        RUN_IMAGE: ${CONTAINER_REGISTRY:-gcr.io}/distroless/static-debian13
+    volumes:
+      - sockets:/tmp:rw
+    environment:
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://agent:4318/
+
+  middleware:
+    build:
+      context: middleware
+      dockerfile: Containerfile
+      args:
+        BASE_IMAGE: ${CONTAINER_REGISTRY:-}alpine:3.24.0
+    volumes:
+      - sockets:/tmp:rw
+    command: server
+
+volumes:
+  sockets:
