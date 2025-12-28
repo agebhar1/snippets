@@ -1,0 +1,76 @@
+---
+# https://github.com/grafana/tempo/tree/main/example/docker-compose/local
+
+stream_over_http_enabled: true
+
+# https://grafana.com/docs/tempo/latest/configuration/#server
+server:
+  log_level: info
+
+# https://grafana.com/docs/tempo/latest/configuration/#distributor
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: ":4317"
+        http:
+          endpoint: ":4318"
+
+# https://grafana.com/docs/tempo/latest/configuration/#ingester
+ingester:
+  max_block_duration: 5m # cut the headblock when this much time passes. this is being set for demo purposes and should probably be left alone normally
+
+# https://grafana.com/docs/tempo/latest/configuration/#metrics-generator
+metrics_generator:
+  storage:
+    path: /var/tempo/generator/wal
+  traces_storage:
+    path: /var/tempo/generator/traces
+  processor:
+    local_blocks:
+      filter_server_spans: false
+      flush_to_storage: true
+
+# https://grafana.com/docs/tempo/latest/configuration/#query-frontend
+query_frontend:
+  search:
+    duration_slo: 5s
+    throughput_bytes_slo: 1.073741824e+09
+    metadata_slo:
+      duration_slo: 5s
+      throughput_bytes_slo: 1.073741824e+09
+  trace_by_id:
+    duration_slo: 100ms
+  metrics:
+    duration_slo: 5s
+    throughput_bytes_slo: 1.073741824e+09
+
+# https://grafana.com/docs/tempo/latest/configuration/#querier
+querier:
+  frontend_worker:
+    frontend_address: ":9095"
+
+# https://grafana.com/docs/tempo/latest/configuration/#compactor
+compactor:
+  compaction:
+    block_retention: 720h # overall Tempo trace retention. set for demo purposes
+
+# https://grafana.com/docs/tempo/latest/configuration/#storage
+storage:
+  trace:
+    backend: local
+    wal:
+      path: /var/tempo/wal
+    local:
+      path: /var/tempo/blocks
+
+# https://grafana.com/docs/tempo/latest/configuration/#overrides
+overrides:
+  defaults:
+    metrics_generator:
+      processors: [ ] # disable metrics generator
+
+# https://grafana.com/docs/tempo/latest/configuration/#usage-report
+usage_report:
+  reporting_enabled: false
