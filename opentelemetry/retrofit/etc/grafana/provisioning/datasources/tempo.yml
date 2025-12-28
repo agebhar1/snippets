@@ -1,0 +1,16 @@
+---
+apiVersion: 1
+
+deleteDatasource:
+  - name: Tempo
+
+datasources:
+  # https://grafana.com/docs/grafana/latest/datasources/tempo/
+  - name: Tempo
+    type: tempo
+    uid: aesi77qaat81sd
+    url: http://tempo:3200
+    isDefault: true
+    jsonData:
+      nodeGraph:
+        enabled: true

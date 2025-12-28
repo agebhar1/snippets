@@ -21,7 +21,9 @@ updates:
       prefix: chore
 
   - package-ecosystem: npm
-    directory: "nginx/oauth2/e2e"
+    directories:
+      - "nginx/oauth2/e2e"
+      - "opentelemetry/retrofit/e2e"
     schedule:
       interval: weekly
       day: saturday
