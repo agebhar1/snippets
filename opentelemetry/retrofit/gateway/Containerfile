@@ -1,0 +1,16 @@
+ARG BUILD_IMAGE
+ARG RUN_IMAGE
+
+FROM ${BUILD_IMAGE} AS build
+
+COPY . .
+
+RUN CGO_ENABLED=0 go build .
+
+FROM ${RUN_IMAGE}
+
+# otel:otel
+USER 100:101
+COPY --from=build /go/gateway /
+
+ENTRYPOINT ["/gateway"]
