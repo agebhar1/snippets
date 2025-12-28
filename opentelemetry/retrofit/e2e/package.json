@@ -1,0 +1,17 @@
+{
+  "type": "module",
+  "scripts": {
+    "eslint:config": "eslint --inspect-config",
+    "lint": "eslint *.config.js tests/*.test.js",
+    "lint:fix": "npm run lint -- --fix",
+    "test": "vitest --test-timeout=0 --hook-timeout=0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@stylistic/eslint-plugin": "5.10.0",
+    "@vitest/eslint-plugin": "1.6.26",
+    "eslint": "10.8.0",
+    "globals": "17.9.0",
+    "vitest": "4.1.10"
+  }
+}
