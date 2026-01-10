@@ -6,7 +6,6 @@ on: [ push ]
 
 env:
   JAVA_VERSION: '21'
-  POSTGRES_VERSION: '17.4'
 
 jobs:
   analyze:
@@ -21,28 +20,33 @@ jobs:
           - language: actions
             build-mode: none
           - language: java-kotlin
-            build-mode: manual
+            build-mode: autobuild
           - language: javascript-typescript
             build-mode: none
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
+
       - if: matrix.language == 'java-kotlin'
-        name: Setup Java
+        name: Setup Java ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: ${{ env.JAVA_VERSION }}
           cache: 'maven'
+
       - if: matrix.language == 'java-kotlin'
-        name: Manual Java/Kotlin build
-        run: ./mvnw test --no-transfer-progress -DargLine="-Dspring.datasource.url=jdbc:tc:postgresql:${{ env.POSTGRES_VERSION }}:///"
-        working-directory: spring-boot
+        name: Java/Kotlin (${{ matrix.build-mode }}) - Spring Boot
+        uses: github/codeql-action/autobuild@v3
+        with:
+          working-directory: spring-boot
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
