@@ -2,6 +2,13 @@
 version: 2
 
 updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: quarterly
+    commit-message:
+      prefix: chore
+
   - package-ecosystem: maven
     directory: "/spring-boot"
     schedule:
