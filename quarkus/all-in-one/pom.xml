@@ -18,7 +18,7 @@
         <argLine></argLine>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
         <quarkus.package.jar.type>uber-jar</quarkus.package.jar.type>
-        <error-prone.version>2.45.0</error-prone.version>
+        <error-prone.version>2.46.0</error-prone.version>
         <java-uuid-generator.version>5.1.0</java-uuid-generator.version>
         <json-unit.version>5.1.0</json-unit.version>
         <jspecify.version>1.0.0</jspecify.version>
