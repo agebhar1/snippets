@@ -1,0 +1,26 @@
+FROM registry.access.redhat.com/ubi9/openjdk-21:1.24-2.1767878250 as builder
+
+COPY --chown=185 pom.xml ${HOME}
+COPY --chown=185 src/ ${HOME}/src
+
+# https://github.com/containers/podman/discussions/25260
+RUN --mount=type=cache,id=51c2a4e2-973b-45dd-bc56-9b824fb06b22,uid=185,gid=185,target=${HOME}/.m2/repository \
+    mvn --show-version --no-transfer-progress --file ${HOME}/pom.xml clean package
+
+FROM registry.access.redhat.com/ubi9/openjdk-21:1.24-2.1767878250
+
+ENV LANGUAGE='en_US:en'
+
+
+# We make four distinct layers so if there are application changes the library layers can be re-used
+COPY --from=builder --chown=185 ${HOME}/target/quarkus-app/lib/ /deployments/lib/
+COPY --from=builder --chown=185 ${HOME}/target/quarkus-app/*.jar /deployments/
+COPY --from=builder --chown=185 ${HOME}/target/quarkus-app/app/ /deployments/app/
+COPY --from=builder --chown=185 ${HOME}/target/quarkus-app/quarkus/ /deployments/quarkus/
+
+EXPOSE 8080
+USER 185
+ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
+
+ENTRYPOINT [ "/opt/jboss/container/java/run/run-java.sh" ]

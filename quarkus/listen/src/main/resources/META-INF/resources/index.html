@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Demo</title>
+</head>
+<body>
+    <h1>WebSocket Demo</h1>
+    <p>
+        <span id="display">initializing…</span>
+    </p>
+    <p>Status: <span id="status">disconnected</span></p>
+
+    <script language="javascript" type="text/javascript">
+
+      const display = document.getElementById("display")
+      const status = document.getElementById("status")
+
+      function connect() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(`${protocol}//${window.location.host}/changes`)
+
+        ws.addEventListener("open", () => {
+          status.textContent = 'connected'
+          display.textContent = 'waiting…'
+        })
+
+        ws.addEventListener("message", (event) => {
+            display.textContent = event.data
+        })
+
+        ws.addEventListener("close", (event) => {
+          status.textContent = `disconnected (${event.code}) reconnecting…`
+          display.textContent = 'offline'
+
+          setTimeout(connect, 5000)
+        })
+
+        ws.addEventListener("error", () => {
+          status.textContent = 'error'
+          display.textContent = 'error'
+        })
+      }
+
+      connect()
+    </script>
+</body>
+</html>

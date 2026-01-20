@@ -1,0 +1,26 @@
+---
+name: quarkus-listen
+
+services:
+  valkey:
+    image: valkey/valkey:9.0.1-alpine3.23
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: valkey-cli ping | grep PONG
+      interval: 15s
+      timeout: 3s
+      retries: 5
+    restart: always
+
+  listen:
+    image: io.github.agebhar1/snippets-quarkus-listen:latest
+    build:
+      context: .
+      dockerfile: Containerfile
+    ports:
+      - "0:8080"
+    environment:
+      QUARKUS_REDIS_HOSTS: redis://valkey:6379
+    restart: always
+    scale: 2
