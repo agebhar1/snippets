@@ -1,0 +1,12 @@
+---
+name: quarkus-clustered
+
+services:
+  clustered:
+    image: snippets-quarkus-clustered:latest
+    build:
+      context: .
+      dockerfile: Containerfile
+    ports:
+      - "0:8080"
+    scale: 3
