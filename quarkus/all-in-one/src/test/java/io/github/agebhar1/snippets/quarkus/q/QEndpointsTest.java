@@ -1,11 +1,15 @@
 package io.github.agebhar1.snippets.quarkus.q;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 import static io.restassured.RestAssured.enableLoggingOfRequestAndResponseIfValidationFails;
 import static io.restassured.RestAssured.given;
@@ -20,7 +24,16 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.iterableWithSize;
 
 @QuarkusTest
-public class QEndpointsTest {
+@TestProfile(QEndpointsTest.class)
+public class QEndpointsTest implements QuarkusTestProfile {
+
+    @Override
+    public Map<String, String> getConfigOverrides() {
+        return Map.of(
+                "q.info.static[0]", "key0=value",
+                "q.info.static[1]", "key1=value"
+        );
+    }
 
     @BeforeAll
     static void beforeAll() {
@@ -32,7 +45,7 @@ public class QEndpointsTest {
     class Info {
 
         @Test
-        @DisplayName("GET /q/info - Git, Java, OS & Build")
+        @DisplayName("GET /q/info - Git, Java, OS, Build and custom allowed environment (env)")
         void testInfoEndpoint() {
 
             var expected = """
@@ -53,6 +66,10 @@ public class QEndpointsTest {
                              "name": "${json-unit.any-string}",
                              "version": "${json-unit.any-string}",
                              "arch": "${json-unit.any-string}"
+                         },
+                         "static": {
+                            "key0": "value",
+                            "key1": "value"
                          },
                          "build": {
                              "name": "snippets-quarkus-allinone",
