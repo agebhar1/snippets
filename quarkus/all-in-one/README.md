@@ -28,7 +28,7 @@ A Quarkus REST Microservices with (✓ Done, ✗ TODO):
             * [JSpecify Support](https://github.com/uber/NullAway/wiki/JSpecify-Support)
     * static analysis w/ [Error Prone](https://errorprone.info/) ✓
     * comprehensive (integration) testing
-        * assert logging ✗
+        * assert logging ✓
 
 ## Details
 

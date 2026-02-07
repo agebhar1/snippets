@@ -18,6 +18,7 @@
         <surefire-plugin.version>3.6.0</surefire-plugin.version>
         <quarkus.package.jar.type>uber-jar</quarkus.package.jar.type>
         <assertj.version>3.27.7</assertj.version>
+        <awaitility.version>4.3.0</awaitility.version>
         <error-prone.version>2.50.0</error-prone.version>
         <java-uuid-generator.version>5.2.0</java-uuid-generator.version>
         <json-unit.version>6.3.0</json-unit.version>
@@ -71,6 +72,11 @@
                 <version>${assertj.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility</artifactId>
+                <version>${awaitility.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.jspecify</groupId>
@@ -176,8 +182,18 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>net.javacrumbs.json-unit</groupId>
+            <artifactId>json-unit-assertj</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
