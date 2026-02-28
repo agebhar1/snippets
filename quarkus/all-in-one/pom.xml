@@ -15,7 +15,7 @@
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.31.4</quarkus.platform.version>
         <skipITs>true</skipITs>
-        <surefire-plugin.version>3.5.4</surefire-plugin.version>
+        <surefire-plugin.version>3.5.5</surefire-plugin.version>
         <quarkus.package.jar.type>uber-jar</quarkus.package.jar.type>
         <assertj.version>3.27.7</assertj.version>
         <error-prone.version>2.47.0</error-prone.version>
