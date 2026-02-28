@@ -18,7 +18,7 @@
         <surefire-plugin.version>3.5.5</surefire-plugin.version>
         <quarkus.package.jar.type>uber-jar</quarkus.package.jar.type>
         <assertj.version>3.27.7</assertj.version>
-        <error-prone.version>2.47.0</error-prone.version>
+        <error-prone.version>2.48.0</error-prone.version>
         <java-uuid-generator.version>5.2.0</java-uuid-generator.version>
         <json-unit.version>5.1.0</json-unit.version>
         <jspecify.version>1.0.0</jspecify.version>
