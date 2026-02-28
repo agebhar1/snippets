@@ -43,7 +43,7 @@ services:
     restart: unless-stopped
 
   oauth2-proxy:
-    image: quay.io/oauth2-proxy/oauth2-proxy:v7.14.2
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.14.3
     environment:
       # https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview#general-provider-options
       OAUTH2_PROXY_CLIENT_ID: "oauth2-proxy"
