@@ -25,7 +25,7 @@
         <logging-json.version>3.4.1</logging-json.version>
         <logging-manager.version>3.4.1</logging-manager.version>
         <nullaway.version>0.13.1</nullaway.version>
-        <resteasy-problem.version>3.32.0</resteasy-problem.version>
+        <resteasy-problem.version>3.32.1</resteasy-problem.version>
     </properties>
 
     <dependencyManagement>
