@@ -20,7 +20,7 @@
         <assertj.version>3.27.7</assertj.version>
         <error-prone.version>2.48.0</error-prone.version>
         <java-uuid-generator.version>5.2.0</java-uuid-generator.version>
-        <json-unit.version>5.1.0</json-unit.version>
+        <json-unit.version>5.1.1</json-unit.version>
         <jspecify.version>1.0.0</jspecify.version>
         <logging-json.version>3.4.1</logging-json.version>
         <logging-manager.version>3.4.1</logging-manager.version>
