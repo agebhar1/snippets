@@ -137,3 +137,33 @@ jobs:
       - name: Stop containers
         run: docker compose down --volumes
         if: always()
+
+  experiments:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        container: [ 'alpine', 'ubuntu' ]
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Validate build configuration
+        uses: docker/build-push-action@v7
+        with:
+          file: opentelemetry/retrofit/experiments/Containerfile.${{ matrix.container }}
+          context: opentelemetry/retrofit/experiments
+          call: check
+
+      - name: Build w/ ${{ matrix.container }}
+        uses: docker/build-push-action@v7
+        with:
+          file: opentelemetry/retrofit/experiments/Containerfile.${{ matrix.container }}
+          context: opentelemetry/retrofit/experiments
+          load: true
+          tags: experiments:${{ matrix.container }}
+
+      - name: Run experiments
+        run: |
+          docker run --rm --volume $(pwd)/experiments:/mnt --env EVENTS="10 100 1000" experiments:${{ matrix.container }} bash /mnt/run.sh
