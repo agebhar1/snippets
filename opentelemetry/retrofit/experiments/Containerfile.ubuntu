@@ -1,0 +1,42 @@
+ARG CONTAINER_REGISTRY=docker.io/
+FROM ${CONTAINER_REGISTRY}library/ubuntu:26.04 AS base
+
+ARG OTEL_UID=1001
+ARG OTEL_GID=1001
+
+#    apt upgrade -y && \
+RUN apt update && \
+    apt install --yes adduser curl libasan8 libtsan2 libubsan1 valgrind && \
+    addgroup --gid ${OTEL_GID} otel && adduser --uid ${OTEL_UID} --ingroup otel --disabled-password --disabled-login --gecos "" otel && \
+    apt remove --yes --purge adduser && \
+    apt clean
+
+FROM base AS build
+
+RUN apt install --yes cmake gcc g++ make libssl-dev
+
+USER otel
+WORKDIR /home/otel
+
+COPY CMakeLists.txt *.c ./
+
+ARG CMAKE_BUILD_TYPE=release
+
+RUN cmake -S . -B ubuntu -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} && \
+    cmake --build ubuntu --clean-first
+
+ARG CONTAINER_REGISTRY=''
+FROM ${CONTAINER_REGISTRY:-docker.io/}golang:1.27.1-alpine3.24 AS go
+
+COPY go.mod server.go ./
+
+RUN CGO_ENABLED=0 go build .
+
+FROM base
+
+COPY --from=build /home/otel/ubuntu/client-v* /usr/bin/
+COPY --from=build /home/otel/ubuntu/worker /usr/bin/
+COPY --from=go /go/server /usr/bin
+
+USER otel
+WORKDIR /home/otel
