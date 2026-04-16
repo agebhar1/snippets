@@ -179,10 +179,11 @@ describe('NGINX', () => {
         expect(text).toStrictEqual(
           `Welcome to nginx!
 
-If you see this page, the nginx web server is successfully installed and working. Further configuration is required.
+If you see this page, nginx is successfully installed and working. Further configuration is required for the web server, reverse proxy, API gateway, load balancer, content cache, or other features.
 
 For online documentation and support please refer to nginx.org.
-Commercial support is available at nginx.com.
+To engage with the community please visit community.nginx.org.
+For enterprise grade support, professional services, additional security features and capabilities please refer to f5.com/nginx.
 
 Thank you for using nginx.`)
       })
