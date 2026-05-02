@@ -11,7 +11,7 @@
     "@stylistic/eslint-plugin": "5.10.0",
     "@vitest/eslint-plugin": "1.6.16",
     "chrome-har": "1.2.1",
-    "eslint": "10.2.1",
+    "eslint": "10.3.0",
     "puppeteer": "24.42.0",
     "vitest": "4.1.5"
   }
