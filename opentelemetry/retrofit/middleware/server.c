@@ -66,13 +66,17 @@ void client_disconnect(Connections *connections, const unsigned short id) {
 }
 
 void client_read(Client *client, const char *queue) {
+#ifdef DEBUG
     printf("read: client(fd: %d, pid: %d, wait: '%s') queue: '%s'\n", client->fd, client->pid, client->wait, queue);
+#endif
     middleware_buffer_size = 0;
     memset(middleware_buffer, 0, sizeof(middleware_buffer));
 
     const int fd = open(queue, O_RDWR | O_EXCL, 0660);
     if (fd == -1) {
+#ifdef DEBUG
         printf("queue: '%s' no data available\n", queue);
+#endif
         strncpy(client->wait, queue, sizeof(client->wait));
         return;
     }
@@ -83,9 +87,13 @@ void client_read(Client *client, const char *queue) {
     struct stat statbuf;
     (void) fstat(fd, &statbuf);
 
+#ifdef DEBUG
     printf("queue: '%s' open position: %ld, size: %ld\n", queue, position, statbuf.st_size);
+#endif
     if (statbuf.st_size == (off_t) position) {
+#ifdef DEBUG
         printf("queue: '%s' no data available\n", queue);
+#endif
         strncpy(client->wait, queue, sizeof(client->wait));
         goto done;
     }
@@ -101,17 +109,25 @@ void client_read(Client *client, const char *queue) {
 
     if (lseek(fd, 0, SEEK_SET) == -1) goto done;
     position += sizeof(middleware_buffer_size) + middleware_buffer_size;
+#ifdef DEBUG
     printf("queue: '%s' update position: %ld\n", queue, position);
+#endif
     write(fd, &position, sizeof(position));
 
+    memset(client->wait, 0, sizeof(client->wait));
+
 done:
+#ifdef DEBUG
     printf("queue: '%s' closed\n", queue);
+#endif
     close(fd);
 }
 
 void client_write(const Client *client, const ssize_t size, const char *queue) {
+#ifdef DEBUG
     printf("write: client(fd: %d, pid: %d, wait: '%s') queue: '%s' (%lu bytes)\n",
            client->fd, client->pid, client->wait, queue, size);
+#endif
     middleware_buffer_size = 0;
     memset(middleware_buffer, 0, sizeof(middleware_buffer));
 
@@ -129,7 +145,9 @@ void client_write(const Client *client, const ssize_t size, const char *queue) {
             constexpr size_t position = sizeof(size_t);
             if (write(fd, &position, sizeof(position)) == -1) goto done;
 
+#ifdef DEBUG
             printf("queue: '%s' created\n", queue);
+#endif
         }
 
         if (write(fd, &middleware_buffer_size, sizeof(middleware_buffer_size)) == -1) goto done;
@@ -137,18 +155,6 @@ void client_write(const Client *client, const ssize_t size, const char *queue) {
 
     done:
         close(fd);
-    }
-}
-
-void client_wakeup(Connections *connections, const char *queue) {
-    for (unsigned short i = 0; i < MAX_CLIENTS; i++) {
-        Client *client = &connections->clients[i];
-        if (client->fd != -1) {
-            if (strcmp(queue, client->wait) == 0) {
-                printf("wakeup: client(fd: %d, pid: %d, wait: '%s')\n", client->fd, client->pid, client->wait);
-                client_read(client, queue);
-            }
-        }
     }
 }
 
@@ -167,7 +173,6 @@ void client_dispatch(Connections *connections, const unsigned short id) {
                     break;
                 case WRITE:
                     client_write(client, hdr.size, hdr.queue);
-                    client_wakeup(connections, hdr.queue);
                     break;
             }
     }
@@ -221,16 +226,26 @@ int main(/*int argc, char *argv[]*/) {
             }
         }
 
-        timeout.tv_usec = 50000;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 250'000;
         const int n = select(nfds + 1, &readfds, NULL, NULL, &timeout);
         if (n > 0) {
+#ifdef DEBUG
             printf("--<< ready >>--\n");
+#endif
             if (FD_ISSET(server_fd, &readfds)) {
                 client_connect(&connections, accept(server_fd, NULL, NULL));
             }
             for (unsigned short i = 0; i < MAX_CLIENTS; i++) {
                 if (FD_ISSET(connections.clients[i].fd, &readfds)) {
                     client_dispatch(&connections, i);
+                }
+            }
+        } else {
+            for (unsigned short i = 0; i < MAX_CLIENTS; i++) {
+                Client *client = &connections.clients[i];
+                if (client->fd != -1 && client->wait[0] != 0) {
+                    client_read(client, client->wait);
                 }
             }
         }

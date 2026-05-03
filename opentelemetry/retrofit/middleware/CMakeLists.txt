@@ -15,5 +15,9 @@ add_executable(client client.c middleware.h)
 add_executable(server server.c
         middleware.h middleware.c
         opentelemetry.h dummy.c)
+add_executable(producer producer.c middleware.h)
 
-target_link_libraries(client m middleware ssl crypto)
+#target_compile_definitions(server PRIVATE DEBUG)
+
+target_link_libraries(client middleware m ssl crypto)
+target_link_libraries(producer middleware m ssl crypto)

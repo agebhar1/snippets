@@ -7,7 +7,7 @@
 #include "middleware.h"
 #include "opentelemetry.h"
 
-unsigned char middleware_buffer[1024 * 1024] = {0};
+unsigned char middleware_buffer[1024 * 1024] = {};
 size_t middleware_buffer_size = 0;
 
 static int middleware_fd = -1;

@@ -67,7 +67,7 @@ func (e OpenTelemetryEvent) lookUpKey() LookUpKey {
 
 func (e OpenTelemetryEvent) String() string {
 	ts := time.Unix(e.Ts.Seconds, e.Ts.Nanos)
-	return fmt.Sprintf("OpCode: %d, Queue: '%s', Ts: %s, Key: %x", e.OpCode, string(e.QueueRaw[:]), ts.Format(time.RFC3339Nano), e.Key)
+	return fmt.Sprintf("OpCode: %d, Queue: '%s', Ts: %s, Key: %x, DroppedEvents: %d", e.OpCode, string(e.QueueRaw[:]), ts.Format(time.RFC3339Nano), e.Key, e.DroppedEvents)
 }
 
 type SharedSpanProcessor struct {
@@ -97,6 +97,7 @@ func (p SharedSpanProcessor) ForceFlush(ctx context.Context) error {
 }
 
 var kv = make(map[LookUpKey]trace.SpanContext)
+var rwlock = sync.RWMutex{}
 
 func serve(conn net.Conn, sp sdktrace.SpanProcessor) {
 
@@ -148,18 +149,25 @@ func serve(conn net.Conn, sp sdktrace.SpanProcessor) {
 				span.SetAttributes(attribute.String("write", fmt.Sprintf("%x", write.lookUpKey())))
 				span.End(trace.WithTimestamp(write.unixTs()))
 
+				rwlock.Lock()
 				kv[write.lookUpKey()] = span.SpanContext()
+				rwlock.Unlock()
 			} else {
+				rwlock.RLock()
 				if sc, ok := kv[read.lookUpKey()]; ok {
 					ctx = trace.ContextWithRemoteSpanContext(ctx, sc)
 				}
+				rwlock.RUnlock()
+
 				_, span := tr.Start(ctx, fmt.Sprintf("produce %s", string(write.QueueRaw[:])), trace.WithTimestamp(read.unixTs()))
 				span.SetStatus(codes.Ok, "")
 				span.SetAttributes(attribute.String("read", fmt.Sprintf("%x", read.lookUpKey())))
 				span.SetAttributes(attribute.String("write", fmt.Sprintf("%x", write.lookUpKey())))
 				span.End(trace.WithTimestamp(write.unixTs()))
 
+				rwlock.Lock()
 				kv[write.lookUpKey()] = span.SpanContext()
+				rwlock.Unlock()
 			}
 		}
 	}
