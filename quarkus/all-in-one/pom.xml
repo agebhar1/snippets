@@ -23,7 +23,7 @@
         <json-unit.version>5.1.1</json-unit.version>
         <jspecify.version>1.0.0</jspecify.version>
         <logging-json.version>3.5.0</logging-json.version>
-        <logging-manager.version>3.4.1</logging-manager.version>
+        <logging-manager.version>3.4.2</logging-manager.version>
         <nullaway.version>0.13.4</nullaway.version>
         <resteasy-problem.version>3.32.1</resteasy-problem.version>
     </properties>
