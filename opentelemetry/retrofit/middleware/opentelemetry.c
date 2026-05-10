@@ -12,7 +12,7 @@
 
 #include "opentelemetry.h"
 
-typedef enum { STATE_READY, STATE_PROCESSING, STATE_EXIT } state_t;
+typedef enum { STATE_DISCONNECTED, STATE_READY, STATE_PROCESSING, STATE_EXIT } state_t;
 
 static int opentelemetry_fd = -1;
 
@@ -25,7 +25,7 @@ static pthread_mutex_t opentelemetry_event_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static unsigned char opentelemetry_buffer[1024 * 1024] = {};
 static size_t opentelemetry_buffer_size = 0;
-static state_t opentelemetry_state;
+static state_t opentelemetry_state = STATE_DISCONNECTED;
 static uint64_t opentelemetry_dropped_events = 0;
 static OpenTelemetryEvent opentelemetry_event;
 
@@ -142,10 +142,23 @@ int opentelemetry_connect() {
 
     free(otel_service_name);
 
-    opentelemetry_state = STATE_READY;
+    opentelemetry_state = STATE_DISCONNECTED;
     if (pthread_create(&opentelemetry_gateway_thread, nullptr, opentelemetry_gateway_thread_fn, nullptr) != 0) {
         perror("pthread_create");
         exit(EXIT_FAILURE);
+    }
+
+    if (pthread_mutex_lock(&opentelemetry_state_mutex) != 0) {
+        perror("pthread_mutex_lock");
+    }
+
+    opentelemetry_state = STATE_READY;
+
+    if (pthread_cond_signal(&opentelemetry_state_cond) != 0) {
+        perror("pthread_cond_signal");
+    }
+    if (pthread_mutex_unlock(&opentelemetry_state_mutex) != 0) {
+        perror("pthread_mutex_unlock");
     }
 
     return 0;
@@ -156,27 +169,36 @@ int opentelemetry_disconnect() {
         perror("pthread_mutex_lock");
     }
 
-    while (opentelemetry_state != STATE_READY) {
-        if (pthread_cond_wait(&opentelemetry_state_cond, &opentelemetry_state_mutex) != 0) {
-            perror("pthread_cond_wait");
+    if (opentelemetry_state != STATE_DISCONNECTED) {
+        while (opentelemetry_state != STATE_READY) {
+            if (pthread_cond_wait(&opentelemetry_state_cond, &opentelemetry_state_mutex) != 0) {
+                perror("pthread_cond_wait");
+            }
+        }
+
+        opentelemetry_state = STATE_EXIT;
+
+        if (pthread_cond_signal(&opentelemetry_state_cond) != 0) {
+            perror("pthread_cond_signal");
+        }
+        if (pthread_mutex_unlock(&opentelemetry_state_mutex) != 0) {
+            perror("pthread_mutex_unlock");
+        }
+        if (pthread_join(opentelemetry_gateway_thread, nullptr) != 0) {
+            perror("pthread_join");
+        }
+    } else {
+        if (pthread_mutex_unlock(&opentelemetry_state_mutex) != 0) {
+            perror("pthread_mutex_unlock");
         }
     }
 
-    opentelemetry_state = STATE_EXIT;
-
-    if (pthread_cond_signal(&opentelemetry_state_cond) != 0) {
-        perror("pthread_cond_signal");
-    }
-    if (pthread_mutex_unlock(&opentelemetry_state_mutex) != 0) {
-        perror("pthread_mutex_unlock");
-    }
-    if (pthread_join(opentelemetry_gateway_thread, nullptr) != 0) {
-        perror("pthread_join");
-    }
+    opentelemetry_state = STATE_DISCONNECTED;
 
     if (opentelemetry_fd == -1) {
         return 0;
     }
+
     const int r = close(opentelemetry_fd);
     opentelemetry_fd = -1;
 
