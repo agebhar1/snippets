@@ -1,5 +1,6 @@
 package io.github.agebhar1.snippets.quarkus.fruit;
 
+import io.github.agebhar1.snippets.quarkus.fruit.boundary.FruitResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
@@ -9,10 +10,18 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.Map;
 
+import static io.github.agebhar1.snippets.quarkus.test.PrometheusTextMetricsMatcher.label;
+import static io.github.agebhar1.snippets.quarkus.test.PrometheusTextMetricsMatcher.metric;
+import static io.github.agebhar1.snippets.quarkus.test.PrometheusTextMetricsMatcher.prometheusTextMetrics;
 import static io.restassured.RestAssured.enableLoggingOfRequestAndResponseIfValidationFails;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
@@ -24,6 +33,7 @@ import static org.hamcrest.text.MatchesPattern.matchesPattern;
 
 @QuarkusTest
 @TestProfile(FruitResourceTest.Profile.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 //@TestTransaction -- rollback changes from @BeforeEach
 class FruitResourceTest {
 
@@ -349,4 +359,35 @@ class FruitResourceTest {
                 .statusCode(404)
                 .body(jsonStringEquals(expected));
     }
+
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', textBlock = """
+            # method | exception
+            add      | none
+            add      | ResteasyReactiveViolationException
+            byId     | none
+            byId     | NotFoundException
+            delete   | none
+            list     | none
+            update   | none
+            """)
+    @Order(Integer.MAX_VALUE)
+    @DisplayName("GET /q/metrics should include endpoint (method) metrics by @Timed")
+    void testEndpointMetrics(String method, String exception) {
+        when().get("/q/metrics")
+                .then()
+                .statusCode(200)
+                .contentType("application/openmetrics-text; version=1.0.0; charset=utf-8")
+                .body(prometheusTextMetrics(
+                        metric("method_timed_seconds", label("class", FruitResource.class.getCanonicalName()), label("exception", exception), label("method", method), label("quantile", "0.5")),
+                        metric("method_timed_seconds", label("class", FruitResource.class.getCanonicalName()), label("exception", exception), label("method", method), label("quantile", "0.9")),
+                        metric("method_timed_seconds", label("class", FruitResource.class.getCanonicalName()), label("exception", exception), label("method", method), label("quantile", "0.95")),
+                        metric("method_timed_seconds", label("class", FruitResource.class.getCanonicalName()), label("exception", exception), label("method", method), label("quantile", "0.99")),
+                        metric("method_timed_seconds", label("class", FruitResource.class.getCanonicalName()), label("exception", exception), label("method", method), label("quantile", "0.999")),
+                        metric("method_timed_seconds_count", label("class", FruitResource.class.getCanonicalName()), label("exception", exception), label("method", method)),
+                        metric("method_timed_seconds_sum", label("class", FruitResource.class.getCanonicalName()), label("exception", exception), label("method", method)),
+                        metric("method_timed_seconds_bucket", label("class", FruitResource.class.getCanonicalName()), label("exception", exception), label("method", method), label("le", "+Inf"))
+                ));
+    }
+
 }

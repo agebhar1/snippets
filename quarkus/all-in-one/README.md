@@ -20,7 +20,7 @@ A Quarkus REST Microservices with (✓ Done, ✗ TODO):
     * (K8s) Health ✗
     * structured logging w/ runtime log level adjustment ✓
     * OpenTelemetry [Traces](https://opentelemetry.io/docs/concepts/signals/traces/) ✓
-    * OpenTelemetry [Metrics](https://opentelemetry.io/docs/concepts/signals/metrics/) ✗
+    * OpenTelemetry [Metrics](https://opentelemetry.io/docs/concepts/signals/metrics/) ✓
 * Quality:
     * [Boundary Control Entity Architecture](https://bce.design/) ✓
     * Null-Safety w/ [JSpecify](https://jspecify.dev/) ✓
@@ -163,7 +163,14 @@ Screenshot of Explore » Tempo in Grafana after running test(s):
 * [Observability in Quarkus](https://quarkus.io/guides/observability)
 * [Using OpenTelemetry](https://quarkus.io/guides/opentelemetry)
     * [Using OpenTelemetry Tracing](https://quarkus.io/guides/opentelemetry-tracing)
+    * [Using OpenTelemetry Metrics](https://quarkus.io/guides/opentelemetry-metrics)
+    * [Micrometer and OpenTelemetry extension](https://quarkus.io/guides/telemetry-micrometer-to-opentelemetry)
     * [Resource](https://quarkus.io/guides/opentelemetry#resource)
+* [Micrometer Metrics](https://quarkus.io/guides/telemetry-micrometer)
+    * [Use MeterFilter to customize emitted tags and metrics](https://quarkus.io/guides/telemetry-micrometer#meter-filter)
+    * [Does Micrometer support annotations?](https://quarkus.io/guides/telemetry-micrometer#annotations)
+    * [Collect metrics using Micrometer](https://quarkus.io/guides/telemetry-micrometer-tutorial)
+* [SmallRye Metrics](https://quarkus.io/extensions/io.quarkus/quarkus-smallrye-metrics/) deprecated
 * [Testing Your Application](https://quarkus.io/guides/getting-started-testing)
 * [Dev Services Overview](https://quarkus.io/guides/dev-services)
     * [Compose Dev Services](https://quarkus.io/guides/compose-dev-services)
@@ -176,6 +183,7 @@ Screenshot of Explore » Tempo in Grafana after running test(s):
 
 * [Explore a new way of testing CDI components in Quarkus](https://quarkus.io/blog/quarkus-component-test/)
 * [Observability in Quarkus 3](https://quarkus.io/blog/quarkus-observability-3-3/)
+* [Quarkus Micrometer using Prometheus client v1](https://quarkus.io/blog/micrometer-prometheus-v1/)
 
 ### Quarkiverse
 
@@ -218,6 +226,9 @@ Screenshot of Explore » Tempo in Grafana after running test(s):
 
 ### Others
 
+* [Micrometer](https://micrometer.io/)
+    * [Counters](https://docs.micrometer.io/micrometer/reference/concepts/counters.html)
+    * [Timers](https://docs.micrometer.io/micrometer/reference/concepts/timers.html)
 * [Locales default set at run-time starting with GraalVM/Mandrel 24.2 for JDK 24, how to handle in Quarkus?](https://github.com/quarkusio/quarkus/discussions/43533)
 * [Quarkus Cheat-Sheet](https://lordofthejars.github.io/quarkus-cheat-sheet/)
 * [Development and Testing of Quarkus applications using Testcontainers](https://testcontainers.com/guides/development-and-testing-quarkus-application-using-testcontainers/)
@@ -225,6 +236,14 @@ Screenshot of Explore » Tempo in Grafana after running test(s):
 * [Why Structured Logging is Fundamental to Observability ](https://betterstack.com/community/guides/logging/structured-logging/)
 * [Google Error-Prone, Uber NullAway in Java applications](https://medium.com/@truongbui95/google-error-prone-uber-nullaway-in-java-applications-230f6cf32b8f)
 * [Improving Java Nulls Using JSpecify and NullAway](https://medium.com/inbank-product-and-engineering/improving-java-nulls-using-jspecify-and-nullaway-12499a232c69)
+* [How to Configure OpenTelemetry Metrics in Quarkus](https://oneuptime.com/blog/post/2026-02-06-opentelemetry-metrics-quarkus-configuration/view)
+* [ How to Visualize Histograms in Grafana with Prometheus](https://oneuptime.com/blog/post/2025-12-17-visualize-histograms-grafana-prometheus/view)
+
+### Known Issues
+
+* Project with micrometer-opentelemetry bridge doesn't produce values in buckets for histogram
+  metric [#51741](https://github.com/quarkusio/quarkus/issues/51741)
+* Add `@Timed` service level objective support [#55002](https://github.com/quarkusio/quarkus/pull/55002)
 
 ---
 
@@ -238,3 +257,4 @@ Screenshot of Explore » Tempo in Grafana after running test(s):
 * [Micrometer and OpenTelemetry extension](https://quarkus.io/guides/telemetry-micrometer-to-opentelemetry)
 * https://github.com/quarkusio/quarkus/blob/main/extensions/hibernate-orm/deployment/src/main/java/io/quarkus/hibernate/orm/deployment/HibernateOrmProcessor.java (
   CurrentTimestampGeneration -> hibernate.testing.clock)
+* [Untangling the Web: Migrating Spring AOP to Quarkus Interceptors](https://www.the-main-thread.com/p/migrating-spring-aop-to-quarkus-cdi-interceptors)

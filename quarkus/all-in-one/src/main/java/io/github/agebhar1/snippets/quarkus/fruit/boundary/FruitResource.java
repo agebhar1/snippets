@@ -2,6 +2,7 @@ package io.github.agebhar1.snippets.quarkus.fruit.boundary;
 
 import io.github.agebhar1.snippets.quarkus.fruit.control.FruitRepository;
 import io.github.agebhar1.snippets.quarkus.fruit.entity.Fruit;
+import io.micrometer.core.annotation.Timed;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -34,17 +35,20 @@ public class FruitResource {
     }
 
     @GET
+    @Timed(histogram = true, percentiles = {0.5, 0.9, 0.95, 0.99, 0.999})
     public Iterable<Fruit> list() {
         return repository.listAll();
     }
 
     @GET
     @Path("{id}")
+    @Timed(histogram = true, percentiles = {0.5, 0.9, 0.95, 0.99, 0.999})
     public RestResponse<Fruit> byId(@PathParam("id") UUID id) {
         return ok(repository.findByIdOptional(id).orElseThrow(NotFoundException::new));
     }
 
     @POST
+    @Timed(histogram = true, percentiles = {0.5, 0.9, 0.95, 0.99, 0.999})
     @Transactional
     public RestResponse<Fruit> add(@Valid Fruit fruit, @Context UriInfo uriInfo) {
         repository.persist(fruit);
@@ -53,6 +57,7 @@ public class FruitResource {
 
     @PUT
     @Path("{id}")
+    @Timed(histogram = true, percentiles = {0.5, 0.9, 0.95, 0.99, 0.999})
     @Transactional
     public RestResponse<Fruit> update(@PathParam("id") UUID id, @Valid Fruit fruit) {
         try {
@@ -64,6 +69,7 @@ public class FruitResource {
 
     @DELETE
     @Path("{id}")
+    @Timed(histogram = true, percentiles = {0.5, 0.9, 0.95, 0.99, 0.999})
     @Transactional
     public RestResponse<Void> delete(@PathParam("id") UUID id) {
         if (!repository.deleteById(id)) {

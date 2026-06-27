@@ -11,6 +11,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
+import static io.github.agebhar1.snippets.quarkus.test.PrometheusTextMetricsMatcher.label;
+import static io.github.agebhar1.snippets.quarkus.test.PrometheusTextMetricsMatcher.metric;
+import static io.github.agebhar1.snippets.quarkus.test.PrometheusTextMetricsMatcher.prometheusTextMetrics;
 import static io.restassured.RestAssured.enableLoggingOfRequestAndResponseIfValidationFails;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
@@ -144,6 +147,33 @@ public class QEndpointsTest implements QuarkusTestProfile {
                     .body("$", allOf(
                             hasEntry("name", "io.github.agebhar1"),
                             hasEntry("effectiveLevel", "DEBUG")
+                    ));
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Prometheus Metrics Endpoint")
+    class Metrics {
+
+        @Test
+        @DisplayName("GET /q/metrics - Prometheus Service Metrics")
+        void testPrometheusMetrics() {
+            when().get("/q/metrics")
+                    .then()
+                    .statusCode(200)
+                    .contentType("application/openmetrics-text; version=1.0.0; charset=utf-8")
+                    .body(prometheusTextMetrics(
+                            metric("jvm_threads_daemon_threads"),
+                            metric("jvm_classes_loaded_classes"),
+                            metric("jvm_threads_states_threads", label("state", "runnable")),
+                            metric("jvm_threads_states_threads", label("state", "blocked")),
+                            metric("jvm_threads_states_threads", label("state", "waiting")),
+                            metric("jvm_threads_states_threads", label("state", "timed-waiting")),
+                            metric("jvm_threads_states_threads", label("state", "new")),
+                            metric("jvm_threads_states_threads", label("state", "terminated")),
+                            metric("jvm_memory_max_bytes", label("area", "heap"), label("id", "G1 Survivor Space")),
+                            metric("jvm_memory_max_bytes", label("area", "heap"), label("id", "G1 Old Gen"))
                     ));
         }
 
