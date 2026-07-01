@@ -23,7 +23,7 @@ jobs:
         pgDockerTag: [ "18.4", "17.10", "16.14", "15.18", "14.23" ]
     name: Java ${{ matrix.javaVersion }}-${{ matrix.javaDistribution }} w/ PostgreSQL ${{ matrix.pgDockerTag }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
         with:
           distribution: ${{ matrix.javaDistribution }}
@@ -35,7 +35,7 @@ jobs:
   diKTat:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
