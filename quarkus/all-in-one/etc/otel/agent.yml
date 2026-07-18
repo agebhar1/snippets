@@ -18,7 +18,7 @@ processors:
 exporters:
   debug:
     verbosity: detailed
-  otlp:
+  otlp_grpc:
     endpoint: collector:4317
     tls:
       insecure: true
@@ -38,14 +38,14 @@ service:
     traces/tempo:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ debug,otlp ]
+      exporters: [ debug,otlp_grpc ]
 
     metrics:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ debug,otlp ]
+      exporters: [ debug,otlp_grpc ]
 
     logs:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ debug,otlp ]
+      exporters: [ debug,otlp_grpc ]

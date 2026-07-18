@@ -1,6 +1,6 @@
 ---
 x-image:
-  opentelemetry-collector-contrib: &opentelemetry-collector-contrib ${CONTAINER_REGISTRY:-}otel/opentelemetry-collector-contrib:0.155.0
+  opentelemetry-collector-contrib: &opentelemetry-collector-contrib ${CONTAINER_REGISTRY:-}otel/opentelemetry-collector-contrib:0.156.0
 
 name: quarkus
 
