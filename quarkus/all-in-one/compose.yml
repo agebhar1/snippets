@@ -149,7 +149,7 @@ services:
       dockerfile: Containerfile
       args:
         BASE_IMAGE: ${CONTAINER_REGISTRY:-}alpine:3.24.0
-        RUSTFS_CLI_VERSION: v0.1.25
+        RUSTFS_CLI_VERSION: v0.1.28
     command:
       - /bin/bash
       - -c
@@ -164,13 +164,13 @@ services:
         # -= Loki =-
         rc admin user add local loki lokis3cr3t
         rc admin policy attach local readwrite --user loki
-        rc bucket create --with-lock local/loki
+        rc bucket create local/loki
         rc bucket lifecycle rule add local/loki --expiry-days 30
 
         # -= Tempo =-
         rc admin user add local tempo tempos3cr3t
         rc admin policy attach local readwrite --user tempo
-        rc bucket create --with-lock local/tempo
+        rc bucket create local/tempo
         rc bucket lifecycle rule add local/tempo --expiry-days 30
 
   service:
