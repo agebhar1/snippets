@@ -124,7 +124,7 @@ services:
 
   # https://github.com/rustfs/rustfs/blob/main/docker-compose.yml
   rustfs:
-    image: ${CONTAINER_REGISTRY:-}rustfs/rustfs:1.0.0-beta.8-glibc
+    image: ${CONTAINER_REGISTRY:-}rustfs/rustfs:1.0.0-beta.10-glibc
     volumes:
       - volume-rustfs:/data
     environment:
