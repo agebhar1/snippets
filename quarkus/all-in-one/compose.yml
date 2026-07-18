@@ -19,7 +19,7 @@ services:
       io.github.agebhar1.project: quarkus
 
   prometheus:
-    image: ${CONTAINER_REGISTRY:-}prom/prometheus:v3.12.0
+    image: ${CONTAINER_REGISTRY:-}prom/prometheus:v3.13.1
     volumes:
       - ./etc/prometheus:/etc/prometheus:ro
       - volume-prometheus:/var/lib/prometheus
