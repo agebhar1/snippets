@@ -1,0 +1,45 @@
+---
+name: OpenTelemetry Retrofit E2E
+permissions: { }
+
+on:
+  push:
+    paths:
+      - 'opentelemetry/retrofit/**'
+      - '!opentelemetry/retrofit/README.md'
+      - '.github/workflows/retrofit.yml'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v2
+        with:
+          version: v5.3.1
+      # https://stackoverflow.com/questions/9966111/run-a-script-piped-from-stdin-linux-shell-scripting
+      # cat .github/workflows/retrofit.yml | yq .jobs.e2e.steps[2].run | bash
+      - run: |
+          docker compose up --quiet-pull --detach --build
+          
+          while ! docker compose exec --no-tty middleware curl --silent --fail http://tempo:3200/ready; do
+            sleep 1
+          done
+          
+          docker compose exec --detach --env OTEL_SERVICE_NAME=clientTwo middleware client -r one -w two
+          docker compose exec --detach --env OTEL_SERVICE_NAME=clientThree middleware client -r two -w three -d 1
+          echo a | docker compose exec --no-tty --env OTEL_SERVICE_NAME=clientOne middleware client -w one
+          
+          docker compose logs gateway middleware
+          
+          # podman compose exec middleware curl --silent --fail http://tempo:3200/api/search
+          # podman compose exec middleware curl --silent --fail http://tempo:3200/api/traces/...
+
+        shell: bash
+        working-directory: opentelemetry/retrofit
+      # cat .github/workflows/retrofit.yml | yq .jobs.e2e.steps[3].run | bash
+      - run: |
+          docker compose down --volumes
+        shell: bash
+        working-directory: opentelemetry/retrofit

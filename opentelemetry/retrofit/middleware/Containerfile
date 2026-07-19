@@ -1,8 +1,8 @@
-FROM ${BASE_IMAGE} AS base
-
 ARG BASE_IMAGE
 
-RUN apk add bash openssl && \
+FROM ${BASE_IMAGE} AS base
+
+RUN apk add bash curl openssl && \
     addgroup -S otel && adduser -S otel -G otel
 
 FROM base AS build
