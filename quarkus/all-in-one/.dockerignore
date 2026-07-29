@@ -1,4 +1,5 @@
 *
+!src/main/docker/symlinks.tar
 !target/*-runner
 !target/*-runner.jar
 !target/dependency/*

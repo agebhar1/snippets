@@ -179,9 +179,10 @@ services:
     # mvn clean package -Dquarkus.package.jar.type=fast-jar -DskipTests
     # curl http://localhost:8080/fruits --header 'Content-Type: application/json' -d '{ "name": "Orange", "description": "Winter fruit" }'
     build:
-      dockerfile: src/main/docker/Dockerfile.jvm
+      dockerfile: src/main/docker/Dockerfile
     volumes:
       - ./etc/service:/deployments/config:ro
+      - volume-tmp:/tmp
     ports:
       - "127.0.0.1:8080:8080"
     environment:
@@ -203,3 +204,4 @@ volumes:
   volume-promtail:
   volume-rustfs:
   volume-tempo:
+  volume-tmp:
