@@ -149,7 +149,7 @@ services:
       dockerfile: Containerfile
       args:
         BASE_IMAGE: ${CONTAINER_REGISTRY:-}alpine:3.24.0
-        RUSTFS_CLI_VERSION: v0.1.28
+        RUSTFS_CLI_VERSION: v0.1.31
     command:
       - /bin/bash
       - -c
