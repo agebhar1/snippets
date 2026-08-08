@@ -1,0 +1,44 @@
+{
+  "name": "nuxt-ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "test:unit": "vitest",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build",
+    "eslint:config": "eslint --inspect-config",
+    "lint": "eslint . --fix --cache"
+  },
+  "dependencies": {
+    "vue": "3.5.41"
+  },
+  "devDependencies": {
+    "@stylistic/eslint-plugin": "5.10.0",
+    "@tsconfig/node24": "24.0.4",
+    "@types/jsdom": "30.0.0",
+    "@types/node": "24.13.3",
+    "@vitejs/plugin-vue": "6.0.8",
+    "@vitest/eslint-plugin": "1.6.26",
+    "@vue/eslint-config-typescript": "14.9.0",
+    "@vue/test-utils": "2.4.11",
+    "@vue/tsconfig": "0.9.1",
+    "eslint": "10.8.1",
+    "eslint-plugin-vue": "10.10.0",
+    "jiti": "2.7.0",
+    "jsdom": "30.0.1",
+    "npm-run-all2": "9.0.3",
+    "typescript": "6.0.3",
+    "vite": "8.2.1",
+    "vite-plugin-vue-devtools": "8.2.1",
+    "vitest": "4.1.10",
+    "vue-eslint-parser": "10.4.1",
+    "vue-tsc": "3.3.9"
+  },
+  "engines": {
+    "node": "^22.18.0 || >=24.12.0"
+  }
+}
