@@ -23,6 +23,8 @@
     "@types/jsdom": "30.0.0",
     "@types/node": "24.13.3",
     "@vitejs/plugin-vue": "6.0.8",
+    "@vitest/browser-playwright": "4.1.10",
+    "@vitest/browser-preview": "4.1.10",
     "@vitest/eslint-plugin": "1.6.26",
     "@vue/eslint-config-typescript": "14.9.0",
     "@vue/test-utils": "2.4.11",
