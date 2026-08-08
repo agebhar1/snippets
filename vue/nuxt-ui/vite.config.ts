@@ -2,6 +2,7 @@ import { URL, fileURLToPath } from 'node:url'
 
 import { configDefaults } from 'vitest/config'
 import { defineConfig } from 'vite'
+import ui from '@nuxt/ui/vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
@@ -9,6 +10,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 export default defineConfig({
   plugins: [
     vue(),
+    ui(),
     vueDevTools(),
   ],
   resolve: {

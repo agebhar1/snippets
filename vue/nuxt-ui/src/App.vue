@@ -1,11 +1,25 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+
 </script>
 
 <template>
-  <header>
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
+  <UApp>
+    <UHeader>
+      <template #title>Nuxt UI</template>
+    </UHeader>
+
+    <UBanner color="warning" icon="i-lucide-info" title="This is a banner with an icon." />
+
+    <UMain>
+      <UContainer>
+        Main
+      </UContainer>
+    </UMain>
+
+    <UFooter>
+      <template #left>
+        <p class="text-muted text-sm">Copyright © {{ new Date().getFullYear() }}</p>
+      </template>
+    </UFooter>
+  </UApp>
 </template>

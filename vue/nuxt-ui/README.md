@@ -6,3 +6,4 @@
 * [Vitest](https://vitest.dev/)
 * [ESLint](https://eslint.org/)
   * [ESLint Stylistic](https://eslint.style)
+* [Nuxt UI](https://ui.nuxt.com/)
