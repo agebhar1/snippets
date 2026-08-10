@@ -1,3 +1,11 @@
+## Run test(s)
+
+```shell
+npm install
+npx playwright install
+npm run test -- --ui
+```
+
 ## Links
 
 * [Vite](https://vite.dev/)
