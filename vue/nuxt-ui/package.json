@@ -25,7 +25,7 @@
     "@vitejs/plugin-vue": "6.0.8",
     "@vitest/browser-playwright": "4.1.10",
     "@vitest/browser-preview": "4.1.10",
-    "@vitest/eslint-plugin": "1.6.26",
+    "@vitest/eslint-plugin": "1.6.27",
     "@vitest/ui": "4.1.10",
     "@vue/eslint-config-typescript": "14.9.0",
     "@vue/test-utils": "2.4.11",
