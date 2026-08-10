@@ -30,5 +30,4 @@ describe('MyComponent', () => {
 
     await expect(screen.baseElement).toMatchScreenshot()
   })
-
 })
