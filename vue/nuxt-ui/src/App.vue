@@ -3,18 +3,14 @@ import MyComponent from '@/components/MyComponent.vue'
 </script>
 
 <template>
-  <UApp>
-    <UHeader>
-      <template #title>Nuxt UI</template>
-      <template #bottom>
-        <UBanner class="sticky"  color="warning" icon="i-lucide-info" title="This is a banner with an icon." />
-      </template>
-    </UHeader>
+  <UApp :toaster="{ position: 'top-right' }">
+    <UBanner icon="i-lucide-construction" title="Under Construction"/>
+    <UHeader title="Nuxt UI"/>
 
     <UMain>
+      <UContainer>Main</UContainer>
       <UContainer>
-        Main
-        <my-component v-bind:is="MyComponent" text='Hello World'></my-component>
+        <my-component v-bind:is="MyComponent" text='Hello World'/>
       </UContainer>
     </UMain>
 
