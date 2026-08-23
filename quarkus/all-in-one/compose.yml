@@ -8,7 +8,7 @@ services:
   postgres:
     profiles:
       - service
-    image: ${CONTAINER_REGISTRY:-}postgres:18.4
+    image: ${CONTAINER_REGISTRY:-}postgres:18.6
     environment:
       POSTGRES_USER: quarkus
       POSTGRES_PASSWORD: quarkus
