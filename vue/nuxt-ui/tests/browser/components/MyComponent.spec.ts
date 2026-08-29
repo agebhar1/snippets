@@ -10,7 +10,7 @@ const useToast = {
   add: vi.fn().mockName('useToast.add'),
 }
 
-// @ts-expect-error n/a
+// @ts-expect-error TS2769: No overload matches this call.
 vi.mock(import('@nuxt/ui/composables'), () => ({
   useToast: () => useToast,
 }))
