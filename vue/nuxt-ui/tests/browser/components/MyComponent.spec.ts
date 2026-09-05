@@ -1,10 +1,9 @@
+import { createRouter, createWebHistory } from 'vue-router'
 import { describe, expect, test, vi } from 'vitest'
 import { render } from 'vitest-browser-vue'
-
-import MyComponent from '../../../src/components/MyComponent.vue'
 import ui from '@nuxt/ui/vue-plugin'
 
-import { createRouter, createWebHistory } from 'vue-router'
+import MyComponent from '../../../src/components/MyComponent.vue'
 
 const useToast = {
   add: vi.fn().mockName('useToast.add'),

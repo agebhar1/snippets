@@ -18,3 +18,6 @@ npm run test -- --ui
   * [ESLint Stylistic](https://eslint.style)
 * [Nuxt UI](https://ui.nuxt.com/)
   * [Recommended way to test Nuxt UI components in a Nuxt context](https://github.com/nuxt/ui/issues/4295)
+  * [Icons](https://ui.nuxt.com/docs/getting-started/integrations/icons/vue) 
+    * `clientBundle.scan=true` (vite.config.ts)
+    * `npm install @iconify-json/{collection_name}`
