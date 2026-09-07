@@ -6,6 +6,10 @@ set(CMAKE_C_STANDARD 23)
 
 add_compile_options(-Wall -Wextra -Wpedantic)
 
+# sudo sysctl vm.mmap_rnd_bits=28
+#add_compile_options(-Wall -Wextra -Wpedantic -g -fsanitize=thread)
+#add_link_options(-fsanitize=thread)
+
 add_library(middleware SHARED
         middleware.h middleware.c
         opentelemetry.h opentelemetry.c

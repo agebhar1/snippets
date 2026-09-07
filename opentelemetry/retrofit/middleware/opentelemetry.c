@@ -21,23 +21,23 @@ static struct timespec opentelemetry_gateway_timeout = {.tv_sec = 0, .tv_nsec = 
 static pthread_t opentelemetry_gateway_thread;
 static pthread_mutex_t opentelemetry_state_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t opentelemetry_state_cond = PTHREAD_COND_INITIALIZER;
-static pthread_mutex_t opentelemetry_event_mutex = PTHREAD_MUTEX_INITIALIZER;
+// static pthread_mutex_t opentelemetry_event_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static unsigned char opentelemetry_buffer[1024 * 1024] = {};
 static size_t opentelemetry_buffer_size = 0;
 static state_t opentelemetry_state = STATE_DISCONNECTED;
-static uint64_t opentelemetry_dropped_events = 0;
+static volatile uint64_t opentelemetry_dropped_events = 0;
 static OpenTelemetryEvent opentelemetry_event;
 
-static void mutex_incr(pthread_mutex_t *mutex, uint64_t *value) {
-    if (pthread_mutex_lock(mutex) != 0) {
-        perror("pthread_mutex_lock");
-    }
-    (*value)++;
-    if (pthread_mutex_unlock(mutex) != 0) {
-        perror("pthread_mutex_unlock");
-    }
-}
+// static void mutex_incr(pthread_mutex_t *mutex, uint64_t *value) {
+//     if (pthread_mutex_lock(mutex) != 0) {
+//         perror("pthread_mutex_lock");
+//     }
+//     (*value)++;
+//     if (pthread_mutex_unlock(mutex) != 0) {
+//         perror("pthread_mutex_unlock");
+//     }
+// }
 
 static void *opentelemetry_gateway_thread_fn([[maybe_unused]] void *arg) {
     while (true) {
@@ -61,13 +61,14 @@ static void *opentelemetry_gateway_thread_fn([[maybe_unused]] void *arg) {
 
         SHA256(opentelemetry_buffer, opentelemetry_buffer_size, opentelemetry_event.key);
 
-        if (pthread_mutex_lock(&opentelemetry_event_mutex) != 0) {
-            perror("pthread_mutex_lock");
-        }
-        opentelemetry_event.dropped_events = opentelemetry_dropped_events;
-        if (pthread_mutex_unlock(&opentelemetry_event_mutex) != 0) {
-            perror("pthread_mutex_unlock");
-        }
+        // if (pthread_mutex_lock(&opentelemetry_event_mutex) != 0) {
+        //     perror("pthread_mutex_lock");
+        // }
+        opentelemetry_event.dropped_events = __atomic_load_n(&opentelemetry_dropped_events, __ATOMIC_SEQ_CST);
+        // opentelemetry_event.dropped_events = opentelemetry_dropped_events;
+        // if (pthread_mutex_unlock(&opentelemetry_event_mutex) != 0) {
+        //     perror("pthread_mutex_unlock");
+        // }
 
         const ssize_t sent = send(opentelemetry_fd, &opentelemetry_event, sizeof(opentelemetry_event), MSG_NOSIGNAL);
         if (sent == -1) {
@@ -225,14 +226,17 @@ static int opentelemetry_execute(const ClientOpCode opcode, const char *queue, c
         return -1;
     }
     if (rv_mutex == ETIMEDOUT) {
-        mutex_incr(&opentelemetry_event_mutex, &opentelemetry_dropped_events);
+        // mutex_incr(&opentelemetry_event_mutex, &opentelemetry_dropped_events);
+        __atomic_add_fetch(&opentelemetry_state, 1, __ATOMIC_SEQ_CST);
         return rv_mutex;
     }
 
     while (opentelemetry_state != STATE_READY) {
         const int rv_cond = pthread_cond_timedwait(&opentelemetry_state_cond, &opentelemetry_state_mutex, &abs_timeout);
         if (rv_cond == ETIMEDOUT) {
-            mutex_incr(&opentelemetry_event_mutex, &opentelemetry_dropped_events);
+            // mutex_incr(&opentelemetry_event_mutex, &opentelemetry_dropped_events);
+            __atomic_add_fetch(&opentelemetry_state, 1, __ATOMIC_SEQ_CST);
+
             if (pthread_mutex_unlock(&opentelemetry_state_mutex) != 0) {
                 perror("pthread_mutex_unlock");
             }
