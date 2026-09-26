@@ -81,6 +81,7 @@ public class QEndpointsTest implements QuarkusTestProfile {
                              "version": "${json-unit.any-string}",
                              "time": "${json-unit.any-string}",
                              "quarkusVersion": "${json-unit.any-string}",
+                             "quarkus-version": "${json-unit.any-string}",
                              "enabled": "${json-unit.any-string}"
                          }
                     }
