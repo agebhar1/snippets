@@ -104,7 +104,7 @@ services:
       io.github.agebhar1.project: quarkus
 
   tempo:
-    image: ${CONTAINER_REGISTRY:-}grafana/tempo:2.10.7
+    image: ${CONTAINER_REGISTRY:-}grafana/tempo:2.10.8
     volumes:
       - ./etc/tempo/config.yml:/etc/tempo.yml:ro
       - volume-tempo:/var/tempo:rw
