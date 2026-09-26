@@ -143,23 +143,19 @@ services:
       io.github.agebhar1.project: quarkus
 
   rustfs-setup:
-    build:
-      context: etc/rustfs
-      # dockerfile_inline: not supported by Podman
-      dockerfile: Containerfile
-      args:
-        BASE_IMAGE: ${CONTAINER_REGISTRY:-}alpine:3.24.0
-        RUSTFS_CLI_VERSION: v0.1.36
+    image: ${CONTAINER_REGISTRY:-}rustfs/rc:v0.1.36
+    entrypoint: /bin/ash
     command:
-      - /bin/bash
       - -c
       - |
-        echo "running w/ $(rc --version)"
+        echo "running w/ $(rc --version) by $(id)"
         set -eu
         
-        while ! rc alias set local http://rustfs:9000 rustfsadmin rustfsadmin; do
-          sleep 1
-        done
+        xargs -0 timeout 20 /bin/ash -c <<EOF
+          until rc alias set local http://rustfs:9000 rustfsadmin rustfsadmin; do
+            sleep 1
+          done
+        EOF
 
         # -= Loki =-
         rc admin user add local loki lokis3cr3t
