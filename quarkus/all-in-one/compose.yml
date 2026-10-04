@@ -35,7 +35,7 @@ services:
       io.github.agebhar1.project: quarkus
 
   grafana:
-    image: ${CONTAINER_REGISTRY:-}grafana/grafana:13.2.2
+    image: ${CONTAINER_REGISTRY:-}grafana/grafana:13.2.3
     volumes:
       - ./etc/grafana/provisioning:/etc/grafana/provisioning:ro
     environment:
