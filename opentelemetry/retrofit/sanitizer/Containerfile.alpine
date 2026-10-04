@@ -1,0 +1,15 @@
+ARG CONTAINER_REGISTRY=''
+FROM ${CONTAINER_REGISTRY}alpine:3.24.2
+
+RUN apk add --no-cache bash cmake gcc g++ make && \
+    adduser default -D -s /sbin/nologin
+
+USER default
+WORKDIR /home/default
+
+COPY CMakeLists.txt *.c ./
+
+ARG CMAKE_BUILD_TYPE=debug
+
+RUN cmake -S . -B alpine -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} && \
+    cmake --build alpine --clean-first
