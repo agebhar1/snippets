@@ -1,0 +1,19 @@
+ARG CONTAINER_REGISTRY=docker.io/
+FROM ${CONTAINER_REGISTRY}library/ubuntu:26.04
+
+#    apt upgrade -y && \
+RUN apt update && \
+    apt install --yes adduser cmake gcc g++ make libasan8 libtsan2 libubsan1 && \
+    adduser --disabled-password --disabled-login --gecos "" default && \
+    apt remove --yes --purge adduser && \
+    apt clean
+
+USER default
+WORKDIR /home/default
+
+COPY CMakeLists.txt *.c ./
+
+ARG CMAKE_BUILD_TYPE=debug
+
+RUN cmake -S . -B ubuntu -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} && \
+    cmake --build ubuntu --clean-first
