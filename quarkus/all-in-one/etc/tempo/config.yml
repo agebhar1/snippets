@@ -1,10 +1,12 @@
 ---
-# https://github.com/grafana/tempo/tree/main/example/docker-compose/local
+# https://github.com/grafana/tempo/blob/main/example/docker-compose/single-binary/tempo.yaml
 
 stream_over_http_enabled: true
 
 # https://grafana.com/docs/tempo/latest/configuration/#server
 server:
+  http_listen_port: 3200
+  grpc_listen_port: 9095
   log_level: info
 
 # https://grafana.com/docs/tempo/latest/configuration/#distributor
@@ -17,20 +19,10 @@ distributor:
         http:
           endpoint: ":4318"
 
-# https://grafana.com/docs/tempo/latest/configuration/#ingester
-ingester:
-  max_block_duration: 5m # cut the headblock when this much time passes. this is being set for demo purposes and should probably be left alone normally
-
 # https://grafana.com/docs/tempo/latest/configuration/#metrics-generator
 metrics_generator:
   storage:
     path: /var/tempo/generator/wal
-  traces_storage:
-    path: /var/tempo/generator/traces
-  processor:
-    local_blocks:
-      filter_server_spans: false
-      flush_to_storage: true
 
 # https://grafana.com/docs/tempo/latest/configuration/#query-frontend
 query_frontend:
@@ -50,11 +42,6 @@ query_frontend:
 querier:
   frontend_worker:
     frontend_address: ":9095"
-
-# https://grafana.com/docs/tempo/latest/configuration/#compactor
-compactor:
-  compaction:
-    block_retention: 720h # overall Tempo trace retention. set for demo purposes
 
 # https://grafana.com/docs/tempo/latest/configuration/#storage
 storage:
