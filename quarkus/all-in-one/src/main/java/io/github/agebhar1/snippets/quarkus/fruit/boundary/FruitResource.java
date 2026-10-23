@@ -3,6 +3,7 @@ package io.github.agebhar1.snippets.quarkus.fruit.boundary;
 import io.github.agebhar1.snippets.quarkus.fruit.control.FruitRepository;
 import io.github.agebhar1.snippets.quarkus.fruit.entity.Fruit;
 import io.micrometer.core.annotation.Timed;
+import io.smallrye.reactive.messaging.kafka.Record;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -16,6 +17,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.jboss.resteasy.reactive.RestResponse;
 
 import java.util.UUID;
@@ -28,15 +31,18 @@ import static org.jboss.resteasy.reactive.RestResponse.seeOther;
 @Path("/fruits")
 public class FruitResource {
 
+    private final Emitter<Record<UUID, String>> emitter;
     private final FruitRepository repository;
 
-    public FruitResource(FruitRepository repository) {
+    public FruitResource(@Channel("audit") Emitter<Record<UUID, String>> emitter, FruitRepository repository) {
+        this.emitter = emitter;
         this.repository = repository;
     }
 
     @GET
     @Timed(histogram = true, percentiles = {0.5, 0.9, 0.95, 0.99, 0.999})
     public Iterable<Fruit> list() {
+        audit("list");
         return repository.listAll();
     }
 
@@ -76,6 +82,10 @@ public class FruitResource {
             throw new NotFoundException();
         }
         return noContent();
+    }
+
+    public void audit(String message) {
+        emitter.send(Record.of(null, message));
     }
 
 }
