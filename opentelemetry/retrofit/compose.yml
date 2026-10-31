@@ -18,7 +18,7 @@ services:
       - "127.0.0.1:3000:3000"
 
   tempo:
-    image: ${CONTAINER_REGISTRY:-}grafana/tempo:3.1.0
+    image: ${CONTAINER_REGISTRY:-}grafana/tempo:3.1.1
     volumes:
       - ./etc/tempo/config.yml:/etc/tempo.yml:ro
     command:
