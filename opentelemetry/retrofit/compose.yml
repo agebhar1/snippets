@@ -5,7 +5,7 @@ services:
   grafana:
     profiles:
       - ui
-    image: ${CONTAINER_REGISTRY:-}grafana/grafana:13.2.4
+    image: ${CONTAINER_REGISTRY:-}grafana/grafana:13.3.0
     volumes:
       - ./etc/grafana/provisioning:/etc/grafana/provisioning:ro
     environment:
