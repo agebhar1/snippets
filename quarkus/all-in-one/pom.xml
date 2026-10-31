@@ -25,7 +25,7 @@
         <jspecify.version>1.0.1</jspecify.version>
         <logging-json.version>3.5.1</logging-json.version>
         <logging-manager.version>3.4.2</logging-manager.version>
-        <nullaway.version>0.14.2</nullaway.version>
+        <nullaway.version>0.14.3</nullaway.version>
         <opentelemetry-javaagent.version>2.33.1</opentelemetry-javaagent.version>
         <resteasy-problem.version>3.32.1</resteasy-problem.version>
     </properties>
