@@ -1,5 +1,5 @@
 ARG CONTAINER_REGISTRY=''
-FROM ${CONTAINER_REGISTRY}alpine:3.24.3
+FROM ${CONTAINER_REGISTRY}alpine:3.24.4
 
 RUN apk add --no-cache bash cmake gcc g++ make && \
     adduser default -D -s /sbin/nologin
