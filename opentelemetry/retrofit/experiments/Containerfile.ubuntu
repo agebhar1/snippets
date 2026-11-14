@@ -26,7 +26,7 @@ RUN cmake -S . -B ubuntu -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} && \
     cmake --build ubuntu --clean-first
 
 ARG CONTAINER_REGISTRY=''
-FROM ${CONTAINER_REGISTRY:-docker.io/}golang:1.27.1-alpine3.24 AS go
+FROM ${CONTAINER_REGISTRY:-docker.io/}golang:1.27.4-alpine3.24 AS go
 
 COPY go.mod server.go ./
 

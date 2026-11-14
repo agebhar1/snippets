@@ -44,7 +44,7 @@ services:
       context: gateway
       dockerfile: Containerfile
       args:
-        BUILD_IMAGE: ${CONTAINER_REGISTRY:-docker.io/}golang:1.27.3-alpine3.24
+        BUILD_IMAGE: ${CONTAINER_REGISTRY:-docker.io/}golang:1.27.4-alpine3.24
         RUN_IMAGE: ${CONTAINER_REGISTRY:-gcr.io}/distroless/static-debian13
         OTEL_UID: ${OTEL_UID:-1001}
         OTEL_GID: ${OTEL_GID:-1001}
