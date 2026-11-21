@@ -185,7 +185,8 @@ For online documentation and support please refer to nginx.org.
 To engage with the community please visit community.nginx.org.
 For enterprise grade support, professional services, additional security features and capabilities please refer to f5.com/nginx.
 
-Thank you for using nginx.`)
+Thank you for using nginx.`,
+        )
       })
     })
 
